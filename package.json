@@ -1,0 +1,25 @@
+{
+  "name": "verilog-ide",
+  "productName": "Verilog IDE",
+  "version": "0.1.15",
+  "private": true,
+  "description": "Verilog and SystemVerilog schematic and interactive simulation workbench",
+  "main": "dist/main.cjs",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "typecheck": "tsc --noEmit",
+    "start": "npm run build && electron .",
+    "test": "node scripts/test.mjs",
+    "package": "npm run build && node scripts/package.mjs",
+    "release:notes": "node scripts/release-notes.mjs"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.0",
+    "electron": "^42.0.0",
+    "elkjs": "^0.11.0",
+    "esbuild": "^0.25.0",
+    "monaco-editor": "^0.52.2",
+    "tar-stream": "^3.1.7",
+    "typescript": "^5.8.3"
+  }
+}
