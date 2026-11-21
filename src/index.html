@@ -62,8 +62,9 @@
           <div id="scope-path"></div>
           <div class="diagram-actions">
             <label class="critical-toggle"><input id="critical-path" type="checkbox" disabled>关键路径</label>
-            <button id="diagram-out" title="缩小电路图">−</button><button id="diagram-in" title="放大电路图">+</button>
-            <button id="diagram-fit">适配</button><button id="colors">配色</button>
+            <button id="diagram-out" title="缩小电路图">−</button>
+            <button id="diagram-fit" class="fit-view" title="适配电路图窗口" aria-label="适配电路图窗口"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 6V3h3 M10 3h3v3 M13 10v3h-3 M6 13H3v-3"/></svg></button>
+            <button id="diagram-in" title="放大电路图">+</button><button id="colors">配色</button>
           </div>
         </div>
         <div id="schematic" role="tabpanel" aria-labelledby="mode-rtl"><div class="empty">&nbsp;综合源码后，电路图将显示在这里。</div></div>
@@ -92,7 +93,11 @@
         <h2>波形</h2><span id="preview"></span><div class="spacer"></div>
         <label><input id="follow" type="checkbox" checked> 跟随光标</label>
         <label>编辑范围 <select id="duration"><option value="step">最小间隔</option><option value="period" selected>所在周期</option><option value="end">至结束</option></select></label>
-        <div class="wave-actions"><button id="wave-out" title="缩小时间轴">−</button><button id="wave-in" title="放大时间轴">+</button><button id="wave-fit">全程</button></div>
+        <div class="wave-actions">
+          <button id="wave-out" title="缩小时间轴">−</button>
+          <button id="wave-fit" class="fit-view" title="显示全程波形" aria-label="显示全程波形"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 6V3h3 M10 3h3v3 M13 10v3h-3 M6 13H3v-3"/></svg></button>
+          <button id="wave-in" title="放大时间轴">+</button>
+        </div>
       </div>
       <div id="wave-scroll"><canvas id="wave" aria-label="信号波形。点击时间刻度移动光标，单击输入电平切换，右键设置 X、Z 或总线值。" tabindex="0"></canvas></div>
       <div class="wave-nav"><span>时间窗</span><div id="wave-range"><div id="range-window" tabindex="0" role="slider" aria-label="平移时间窗"><button id="range-start" role="slider" aria-label="时间窗起点"></button><button id="range-end" role="slider" aria-label="时间窗终点"></button></div></div><span id="range-label"></span></div>

@@ -139,6 +139,13 @@ app.whenReady().then(async () => {
   await wait("document.querySelector('.monaco-editor') && document.getElementById('lint-status').textContent.includes('语法通过')", 'live lint');
   assert.equal(Menu.getApplicationMenu(), null);
   assert.deepEqual(await evaluate("[...document.querySelectorAll('.editor-panel .panel-header .file-actions button')].map(button => button.id)"), ['new', 'open', 'save']);
+  for (const prefix of ['diagram', 'wave']) {
+    const id = prefix + '-fit';
+    assert.deepEqual(await evaluate(`(() => {
+      const button = document.getElementById('${id}');
+      return [button.previousElementSibling.id, button.nextElementSibling.id, !!button.querySelector('svg path'), !!button.getAttribute('aria-label')];
+    })()`), [prefix + '-out', prefix + '-in', true, true]);
+  }
   assert.equal(await evaluate("document.querySelector('.appbar').getBoundingClientRect().height"), 32);
   const key = async (keyCode, modifiers = []) => {
     const received = new Promise(resolve => webContents.once('before-input-event', (_,input) => resolve(input)));

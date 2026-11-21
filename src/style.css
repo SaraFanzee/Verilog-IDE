@@ -45,6 +45,8 @@ h2 { margin: 0; font-size: 13px; font-weight: 650; white-space: nowrap; }
 .file-actions, .transport-buttons, .diagram-actions, .wave-actions { display: flex; gap: 5px; }
 .panel-header .file-icon { width: 26px; padding: 0; display: grid; place-items: center; }
 .file-icon svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+.panel-header .fit-view { width: 26px; padding: 0; display: grid; place-items: center; }
+.fit-view svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 1.3; stroke-linecap: round; stroke-linejoin: round; }
 .run { display: inline-flex; gap: 6px; align-items: center; justify-content: center; }
 .run svg { width: 13px; height: 13px; fill: currentColor; }
 .run:not(.playing) .pause-icon, .run.playing .play-icon { display: none; }
