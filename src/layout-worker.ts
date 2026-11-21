@@ -1,7 +1,7 @@
 import ELK from 'elkjs/lib/elk-api.js';
 import type { ElkExtendedEdge, ElkNode } from 'elkjs/lib/elk-api';
 import { routeChannels, routeNets } from './routing';
-import { optimizeLayout } from './optimize-layout';
+import { optimizeLayout, refineLayout } from './optimize-layout';
 import type { Box, Route, Terminal } from './routing';
 
 export interface LayoutRequest {
@@ -68,7 +68,8 @@ worker.onmessage = async ({ data }: MessageEvent<LayoutRequest>) => {
         // A congested grid uses the channel router below.
       }
     }
-    worker.postMessage(optimizeLayout(layout ?? routeChannels(boxes, groups, kinds)) satisfies LayoutResult);
+    const initial = layout ?? routeChannels(boxes, groups, kinds);
+    worker.postMessage(optimizeLayout(refineLayout(initial, groups, kinds)) satisfies LayoutResult);
   } catch (error) {
     worker.postMessage({ error: error instanceof Error ? error.message : String(error) } satisfies LayoutResult);
   }

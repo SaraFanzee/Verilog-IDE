@@ -109,7 +109,9 @@ class Queue {
   }
 }
 
-export function routeNets(width: number, height: number, boxes: Box[], nets: Terminal[][], deadline = Infinity): Route[] {
+interface Reroute { routes: Route[]; order: number[] }
+
+export function routeNets(width: number, height: number, boxes: Box[], nets: Terminal[][], deadline = Infinity, reroute?: Reroute): Route[] {
   const stride = width + 1;
   const key = ({ x, y }: Point) => y * stride + x;
   const point = (key: number) => ({ x: key % stride, y: Math.floor(key / stride) });
@@ -126,6 +128,24 @@ export function routeNets(width: number, height: number, boxes: Box[], nets: Ter
       for (let x = box.x; x <= box.x + box.width; x++) blocked.add(y * stride + x);
     }
   }
+  if (reroute) {
+    const selected = new Set(reroute.order);
+    reroute.routes.forEach((route, index) => {
+      if (selected.has(index)) return;
+      const mark = (at: number, mask: number) => occupied.set(at, (occupied.get(at) ?? 0) | mask);
+      for (const [a, b] of route.segments) {
+        const direction = a.x === b.x ? (a.y < b.y ? 1 : 3) : (a.x < b.x ? 0 : 2);
+        const step = offsets[direction];
+        const end = key(b);
+        if (key(a) === end) continue;
+        for (let at = key(a); at !== end; at += step) {
+          checkTime();
+          mark(at, directions[direction]);
+          mark(at + step, directions[(direction + 2) % 4]);
+        }
+      }
+    });
+  }
   const starts = nets.map((terminals, index) => terminals.map(terminal => {
     const direction = terminal.side === 'right' ? 0 : 2;
     const anchor = key(terminal.point);
@@ -135,6 +155,10 @@ export function routeNets(width: number, height: number, boxes: Box[], nets: Ter
   }));
 
   function route(terminals: typeof starts[number], index: number): Route {
+    if (reroute && terminals.length > 1 && terminals.some(({ start }) =>
+      blocked.has(start) || occupied.has(start) || reservations.get(start) !== index)) {
+      throw new Error('引脚出线空间不足。');
+    }
     const tree = new Map<number, number>();
     const added: number[] = [];
     const put = (at: number, mask: number) => {
@@ -238,6 +262,11 @@ export function routeNets(width: number, height: number, boxes: Box[], nets: Ter
     return { segments, joints };
   }
 
+  if (reroute) {
+    const result = [...reroute.routes];
+    for (const index of reroute.order) result[index] = route(starts[index], index);
+    return result;
+  }
   const result: Route[] = [];
   // Route constrained, short nets before long trunks, preserving input order in output.
   const ordered = starts.map((terminals, index) => ({ terminals, index })).sort((a, b) => a.terminals.length - b.terminals.length);

@@ -10,7 +10,7 @@ import { makeCell } from '../src/cells';
 import type { Scope, Vector } from '../src/design';
 import { diagramConnections } from '../src/schematic-nets';
 import { routeChannels, routeNets, routePaths } from '../src/routing';
-import { optimizeLayout } from '../src/optimize-layout';
+import { optimizeLayout, refineLayout } from '../src/optimize-layout';
 import type { Route, Terminal } from '../src/routing';
 import { defaultDelay } from '../src/simulation';
 import { criticalPath } from '../src/critical-path';
@@ -194,6 +194,88 @@ await test('a three-elbow branch becomes a single joined elbow at the same elect
   assert.equal(branch[1].y,start.y);
   assert.equal(branch[1].x,routes[0].joints[0].x);
   assert.deepEqual(routePaths(routes[0]).map(p=>p.length).sort(),[2,2,3]);
+});
+
+await test('a junction slides along a trunk but stays clear of another net crossing it', () => {
+  const joint = { x: 12, y: 12 };
+  const route: Route = { joints: [joint], segments: [
+    [{ x: 4, y: 12 }, { x: 30, y: 12 }],
+    [joint, { x: 12, y: 22 }],
+    [{ x: 12, y: 22 }, { x: 20, y: 22 }],
+  ] };
+  const foreign: Route = { joints: [], segments: [[{ x: 20, y: 7 }, { x: 20, y: 17 }]] };
+  const run = (routes: Route[]) => optimizeLayout({ boxes: [], routes, width: 36, height: 30 }).routes;
+  const [straight] = run([route]);
+  assert.deepEqual(routePaths(straight).map(path => path.length), [2, 2, 2]);
+  assert.equal(straight.joints.length, 1);
+  const [blocked, crossing] = run([route, foreign]);
+  assert(routePaths(blocked).some(path => path.length > 2));
+  assert.notEqual(blocked.joints[0].x, crossing.segments[0][0].x);
+  assert.equal(crossing.joints.length, 0);
+});
+
+await test('placing a junction on an existing elbow removes the separate bend', () => {
+  const joint = { x: 12, y: 12 }, elbow = { x: 22, y: 12 };
+  const route: Route = { joints: [joint], segments: [
+    [{ x: 4, y: 12 }, elbow], [elbow, { x: 22, y: 26 }],
+    [joint, { x: 12, y: 4 }], [{ x: 12, y: 4 }, { x: 22, y: 4 }],
+  ] };
+  const layout = optimizeLayout({ boxes: [], routes: [route], width: 30, height: 34 });
+  const [result] = layout.routes;
+  assert.deepEqual(routePaths(result).map(path => path.length), [2, 2, 2]);
+  assert.equal(result.joints.length, 1);
+  assert.equal(result.segments.filter(([a, b]) => a.x === b.x && a.x === result.joints[0].x).length, 2);
+  assert.deepEqual(optimizeLayout(layout), layout);
+});
+
+await test('local rerouting moves an obstructing component and keeps every pin connected', () => {
+  const boxes = [{ x: 4, y: 10, width: 4, height: 4 }, { x: 36, y: 10, width: 4, height: 4 },
+    { x: 18, y: 10, width: 5, height: 4 }, { x: 28, y: 19, width: 4, height: 4 }];
+  const groups = [
+    [{ part: 0, at: { side: 'right', point: { x: 4, y: 2 } } }, { part: 1, at: { side: 'left', point: { x: 0, y: 2 } } }],
+    [{ part: 2, at: { side: 'right', point: { x: 5, y: 3 } } }, { part: 3, at: { side: 'left', point: { x: 0, y: 2 } } }],
+  ] satisfies Parameters<typeof refineLayout>[1];
+  const points = [[8,12], [10,12], [10,8], [34,8], [34,12], [36,12]].map(([x, y]) => ({ x, y }));
+  const routes: Route[] = [
+    { joints: [], segments: points.slice(1).map((p, i) => [points[i], p]) },
+    { joints: [], segments: [[{ x: 23, y: 13 }, { x: 25, y: 13 }], [{ x: 25, y: 13 }, { x: 25, y: 21 }],
+      [{ x: 25, y: 21 }, { x: 28, y: 21 }]] },
+  ];
+  const result = refineLayout({ boxes, routes, width: 48, height: 30 }, groups, ['input', 'output', 'cell', 'output'], 1000);
+  assert.notEqual(result.boxes[2].y, boxes[2].y);
+  assert.deepEqual(result.boxes.slice(0, 2), boxes.slice(0, 2));
+  assert.equal(routePaths(result.routes[0])[0].length, 2);
+  groups.forEach((group, i) => {
+    const [start, end] = group.map(({ part, at }) => ({
+      x: result.boxes[part].x + at.point.x, y: result.boxes[part].y + at.point.y,
+    }));
+    assert.deepEqual(routeBranch(result.routes[i], start, end).at(-1), end);
+  });
+});
+
+await test('crossing nets can swap adjacent components while leaving unrelated wires in place', () => {
+  const boxes = [{ x: 4, y: 9, width: 4, height: 4 }, { x: 4, y: 39, width: 4, height: 4 },
+    { x: 30, y: 2, width: 4, height: 18 }, { x: 30, y: 32, width: 4, height: 18 },
+    { x: 4, y: 53, width: 4, height: 4 }, { x: 30, y: 53, width: 4, height: 4 }];
+  const groups = [[0, 3], [1, 2], [4, 5]].map(([from, to]) => [
+    { part: from, at: { side: 'right' as const, point: { x: 4, y: 2 } } },
+    { part: to, at: { side: 'left' as const, point: { x: 0, y: to === 5 ? 2 : 9 } } },
+  ]);
+  const routes: Route[] = [
+    [[8,11], [14,11], [14,26], [26,26], [26,41], [30,41]],
+    [[8,41], [20,41], [20,11], [30,11]],
+    [[8,55], [30,55]],
+  ].map(points => {
+    const path = points.map(([x, y]) => ({ x, y }));
+    return { segments: path.slice(1).map((point, i) => [path[i], point]), joints: [] };
+  });
+  const result = refineLayout({ boxes, routes, width: 42, height: 64 }, groups,
+    ['input', 'input', 'cell', 'cell', 'input', 'output'], 1000);
+  assert.equal(result.boxes[2].y, boxes[3].y);
+  assert.equal(result.boxes[3].y, boxes[2].y);
+  assert.equal(routePaths(result.routes[0])[0].length, 2);
+  assert.equal(routePaths(result.routes[1])[0].length, 2);
+  assert.equal(result.routes[2], routes[2]);
 });
 
 await test('compacted tracks are rechecked until a chain of blocked shortcuts is straight', () => {
