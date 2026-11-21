@@ -146,6 +146,7 @@ app.whenReady().then(async () => {
       return [button.previousElementSibling.id, button.nextElementSibling.id, !!button.querySelector('svg path'), !!button.getAttribute('aria-label')];
     })()`), [prefix + '-out', prefix + '-in', true, true]);
   }
+  assert(await evaluate("document.querySelector('#colors img').naturalWidth > 0 && document.getElementById('colors').getAttribute('aria-label') === '配色'"));
   assert.equal(await evaluate("document.querySelector('.appbar').getBoundingClientRect().height"), 32);
   const key = async (keyCode, modifiers = []) => {
     const received = new Promise(resolve => webContents.once('before-input-event', (_,input) => resolve(input)));

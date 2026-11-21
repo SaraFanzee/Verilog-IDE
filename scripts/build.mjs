@@ -10,5 +10,6 @@ await Promise.all([
     loader: { '.ttf': 'file' }, legalComments: 'linked',
   }),
   cp('src/index.html', 'dist/index.html'),
+  cp('src/color-disc-icon.png', 'dist/color-disc-icon.png'),
   cp('node_modules/elkjs/lib/elk-worker.min.js', 'dist/elk-worker.js'),
 ]);

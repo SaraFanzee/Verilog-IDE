@@ -20,7 +20,7 @@ app.whenReady().then(() => {
   Menu.setApplicationMenu(null);
   protocol.handle('verilog-ide', request => {
     const url = new URL(request.url);
-    if (url.hostname !== 'workbench' || !/^\/[\w.-]+\.(html|css|js|ttf|map)$/.test(url.pathname)) return new Response(null, { status: 404 });
+    if (url.hostname !== 'workbench' || !/^\/[\w.-]+\.(html|css|js|ttf|map|png)$/.test(url.pathname)) return new Response(null, { status: 404 });
     return net.fetch(pathToFileURL(join(__dirname, url.pathname.slice(1))).href);
   });
   const window = new BrowserWindow({
