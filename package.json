@@ -1,7 +1,8 @@
 {
   "name": "verilog-ide",
   "productName": "Verilog IDE",
-  "version": "0.1.15",
+  "version": "0.1.16",
+  "license": "MIT",
   "private": true,
   "description": "Verilog and SystemVerilog schematic and interactive simulation workbench",
   "main": "dist/main.cjs",

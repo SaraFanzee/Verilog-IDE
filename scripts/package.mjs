@@ -62,6 +62,7 @@ await mkdir(app);
 await cp('dist', join(app, 'dist'), { recursive: true });
 await cp('package.json', join(app, 'package.json'));
 await cp('README.md', join(output, 'README.md'));
+await cp('LICENSE', join(output, 'LICENSE'));
 await writeFile(join(output, 'CHANGELOG.md'), notes);
 
 const archive = join(release, name + (windows ? '.zip' : '.tar.gz'));
