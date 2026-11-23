@@ -207,7 +207,21 @@ app.whenReady().then(async () => {
   assert((await value('log')).includes('check\nwrite_json design.json'));
   assert(await evaluate("Math.abs(document.querySelector('.editor-panel').clientWidth / document.getElementById('workspace').clientWidth - .25) < .01"));
   assert(await evaluate("document.querySelector('.bus-wire + .wire-hit title').textContent.includes('4 bit')"));
-  assert.deepEqual(await evaluate("['step', 'cycle', 'show-signals'].map(id => document.getElementById(id).textContent)"), ['>|', '>||', '声明信号']);
+  assert.equal(await value('show-signals'), '声明信号');
+  assert.deepEqual(await evaluate("['step', 'cycle'].map(id => document.querySelector('#' + id + ' path').getAttribute('d').match(/v8/g).length)"), [1, 2]);
+  const offCenterIcons = await evaluate(`(() => {
+    const centerY = rect => rect.y + rect.height / 2;
+    const icons = document.querySelectorAll('button > svg, button > img, button .watch-mark');
+    return [...icons].filter(icon => {
+      if (!icon.getClientRects().length) return false;
+      const box = icon instanceof SVGSVGElement ? icon.getBBox() : icon.getBoundingClientRect();
+      const y = icon instanceof SVGSVGElement
+        ? new DOMPoint(0, centerY(box)).matrixTransform(icon.getScreenCTM()).y
+        : centerY(box);
+      return Math.abs(y - centerY(icon.closest('button').getBoundingClientRect())) > 0.25;
+    }).map(icon => icon.closest('button').id || icon.closest('button').className);
+  })()`);
+  assert.deepEqual(offCenterIcons, [], 'visible button icons are vertically centered');
   assert(await evaluate(`(() => {
     const icons = [...document.querySelectorAll('#signals .signal-icon')];
     return ['clock', 'input', 'output'].every(kind => icons.some(icon => icon.classList.contains(kind)))

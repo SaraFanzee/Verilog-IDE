@@ -235,13 +235,15 @@ function renderTabs() {
     tab.type = 'button';
     tab.setAttribute('role', 'tab');
     tab.setAttribute('aria-selected', String(file.source.id === active));
-    tab.textContent = file.source.name + (file.saved === file.model.getValue() ? '' : ' ●');
+    tab.textContent = file.source.name;
+    const dirty = file.saved !== file.model.getValue();
+    tab.toggleAttribute('data-dirty', dirty);
+    if (dirty) tab.setAttribute('aria-label', `${file.source.name}（未保存）`);
     tab.title = file.source.path ?? file.source.name;
     tab.onclick = () => switchTab(file.source.id);
     const close = document.createElement('button');
     close.type = 'button';
-    close.className = 'close-tab';
-    close.textContent = '×';
+    close.className = 'close-tab close-icon';
     close.setAttribute('aria-label', '关闭 ' + file.source.name);
     close.onclick = () => closeTab(file);
     group.append(tab, close);
@@ -455,11 +457,15 @@ function renderInspector() {
     tag.className = 'tag';
     const kind = signal.clock ? 'clock' : signal.direction;
     if (kind === 'clock' || kind === 'input' || kind === 'output') control.append(signalIcon(kind));
+    const watchMark = document.createElement('span');
+    watchMark.className = 'watch-mark';
+    watchMark.setAttribute('aria-hidden', 'true');
+    tag.append(`${kind === 'inout' ? '双向 ' : ''}${signal.width}b`, watchMark);
     control.append(name, tag);
     const updateWatch = () => {
       const active = watched.has(signal.id);
       control.setAttribute('aria-pressed', String(active));
-      tag.textContent = `${kind === 'inout' ? '双向 ' : ''}${signal.width}b ${signal.bits ? (active ? '✓' : '+') : '—'}`;
+      watchMark.dataset.state = signal.bits ? (active ? 'added' : 'available') : 'unavailable';
       tag.classList.toggle('watched', active);
     };
     updateWatch();

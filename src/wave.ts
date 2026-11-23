@@ -101,7 +101,7 @@ export class Waveform {
         row.className = 'watch-row';
         row.style.height = laneHeight + 'px';
         const remove = document.createElement('button');
-        remove.className = 'watch-remove'; remove.textContent = '×';
+        remove.className = 'watch-remove close-icon';
         remove.title = '移除 ' + signal.name;
         const name = document.createElement('span');
         name.className = 'watch-name'; name.textContent = (signal.clock ? '◷ ' : '') + signal.name; name.title = signal.name;

@@ -48,6 +48,14 @@ h2 { margin: 0; font-size: 13px; font-weight: 650; white-space: nowrap; }
 .panel-header .fit-view, .panel-header .palette-icon { width: 26px; padding: 0; display: grid; place-items: center; }
 .fit-view svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 1.3; stroke-linecap: round; stroke-linejoin: round; }
 .palette-icon img { width: 20px; height: 20px; }
+.icon-button { display: inline-flex; align-items: center; justify-content: center; gap: 4px; }
+.button-icon { width: 12px; height: 12px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.button-icon.filled-icon { fill: currentColor; stroke: none; }
+.close-icon { display: grid; place-items: center; }
+.close-icon::before {
+  content: ""; width: 8px; height: 8px; background: currentColor;
+  clip-path: polygon(12% 0, 50% 38%, 88% 0, 100% 12%, 62% 50%, 100% 88%, 88% 100%, 50% 62%, 12% 100%, 0 88%, 38% 50%, 0 12%);
+}
 .run { display: inline-flex; gap: 6px; align-items: center; justify-content: center; }
 .run svg { width: 13px; height: 13px; fill: currentColor; }
 .run:not(.playing) .pause-icon, .run.playing .play-icon { display: none; }
@@ -100,7 +108,9 @@ main { min-height: 0; flex: 1; display: flex; flex-direction: column; padding: 8
 .tabs button { border-radius: 0; border: none; border-bottom: 2px solid transparent; background: transparent; padding: 4px 9px; max-width: 165px; overflow: hidden; text-overflow: ellipsis; }
 .tabs button[aria-selected="true"] { background: var(--panel); border-bottom-color: var(--accent); }
 .file-tab { display: flex; align-items: stretch; }
-.tabs button.close-tab { color: var(--dim); padding-inline: 5px; }
+.file-tab button[data-dirty] { position: relative; padding-right: 21px; }
+.file-tab button[data-dirty]::after { content: ""; position: absolute; top: calc(50% + 1px); right: 8px; width: 7px; height: 7px; border-radius: 50%; background: currentColor; transform: translateY(-50%); }
+.tabs button.close-tab { color: var(--dim); padding-inline: 5px; border-bottom: 0; }
 .tabs button.close-tab:hover { color: var(--text); background: var(--surface); }
 #editor { flex: 1; min-height: 0; }
 .diagnostic { border-top: 1px solid var(--line); }
@@ -158,8 +168,12 @@ main { min-height: 0; flex: 1; display: flex; flex-direction: column; padding: 8
 .signal-icon path { fill: var(--signal-fill); }
 .signal-icon rect { fill: none; stroke: var(--signal-stroke); }
 .signal-row button:hover:enabled, .part-row button:hover:enabled { background: var(--surface); border-color: var(--line); }
-.signal-row .tag { font: 11px var(--font); color: var(--dim); white-space: nowrap; }
+.signal-row .tag { display: flex; align-items: center; gap: 3px; font: 11px var(--font); color: var(--dim); white-space: nowrap; }
 .signal-row .watched { color: var(--accent); }
+.watch-mark { width: 8px; height: 8px; background: currentColor; }
+.watch-mark[data-state="added"] { clip-path: polygon(0 47%, 15% 34%, 39% 62%, 86% 10%, 100% 24%, 39% 90%); }
+.watch-mark[data-state="available"] { clip-path: polygon(42% 6%, 58% 6%, 58% 42%, 94% 42%, 94% 58%, 58% 58%, 58% 94%, 42% 94%, 42% 58%, 6% 58%, 6% 42%, 42% 42%); }
+.watch-mark[data-state="unavailable"] { clip-path: inset(42% 6%); }
 .part-columns { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 3px 6px; color: var(--muted); padding: 5px 8px 2px; font-size: 11px; }
 .part-actions { display: flex; align-items: center; gap: 4px; margin-left: auto; white-space: nowrap; }
 .part-actions button { min-height: 20px; padding: 1px 4px; }
@@ -208,6 +222,7 @@ dialog p { margin: 0; }
 .synth-actions { display: flex; flex: none; white-space: nowrap; }
 .synth-actions #synthesize { border-radius: 5px 0 0 5px; }
 .synth-actions #settings { width: 12px; border-radius: 0 5px 5px 0; border-left: 1px solid #40766d; padding-inline: 0; }
+.synth-actions #settings .button-icon { width: 8px; height: 8px; }
 .results, .diagram-row { flex: 1; min-width: 0; min-height: 0; display: flex; }
 .results { flex-direction: column; }
 .workspace { position: relative; }

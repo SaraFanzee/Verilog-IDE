@@ -21,7 +21,7 @@
             <button id="save" class="file-icon" title="保存" aria-label="保存"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 3h13l3 3v15H4z M8 3v6h8V3 M8 21v-8h8v8"/></svg></button>
           </div>
           <span id="lint-status"></span>
-          <div class="synth-actions"><button id="synthesize" class="primary">▷ 综合</button><button id="settings" class="primary" aria-label="综合设置" title="综合设置" aria-haspopup="dialog">▾</button></div>
+          <div class="synth-actions"><button id="synthesize" class="primary icon-button"><svg class="button-icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M5 3l8 5-8 5z"/></svg>综合</button><button id="settings" class="primary icon-button" aria-label="综合设置" title="综合设置" aria-haspopup="dialog"><svg class="button-icon filled-icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 5h12l-6 6z"/></svg></button></div>
         </div>
         <div id="tabs" class="tabs" role="tablist"></div>
         <div id="editor"></div>
@@ -40,9 +40,9 @@
     </form>
     <div class="playback">
       <div class="transport-buttons">
-        <button id="rewind" title="回到 0 ns，保留激励" aria-label="回到零">■</button>
-        <button id="step" title="前进一个仿真间隔" aria-label="单步">&gt;|</button>
-        <button id="cycle" title="前进一个时钟周期" aria-label="整周期">&gt;||</button>
+        <button id="rewind" class="icon-button" title="回到 0 ns，保留激励" aria-label="回到零"><svg class="button-icon filled-icon" viewBox="0 0 16 16" aria-hidden="true"><rect x="3" y="3" width="10" height="10"/></svg></button>
+        <button id="step" class="icon-button" title="前进一个仿真间隔" aria-label="单步"><svg class="button-icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 4l5 4-5 4 M12 4v8"/></svg></button>
+        <button id="cycle" class="icon-button" title="前进一个时钟周期" aria-label="整周期"><svg class="button-icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 4l5 4-5 4 M10 4v8 M14 4v8"/></svg></button>
         <button id="play" class="run"><svg viewBox="0 0 16 16" aria-hidden="true"><path class="play-icon" d="M3 1.5 14 8 3 14.5Z"/><g class="pause-icon"><rect x="3" y="2" width="3.5" height="12"/><rect x="9.5" y="2" width="3.5" height="12"/></g></svg><span id="play-label">运行</span></button>
       </div>
       <label class="speed">速度<input type="range" id="speed" min="1" max="100" value="10"><output id="speed-label">10 ns/s</output></label>
@@ -62,9 +62,9 @@
           <div id="scope-path"></div>
           <div class="diagram-actions">
             <button id="critical-path" class="toggle-button" aria-pressed="false" disabled>关键路径</button>
-            <button id="diagram-out" title="缩小电路图">−</button>
+            <button id="diagram-out" class="icon-button" title="缩小电路图" aria-label="缩小电路图"><svg class="button-icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h10"/></svg></button>
             <button id="diagram-fit" class="fit-view" title="适配电路图窗口" aria-label="适配电路图窗口"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 6V3h3 M10 3h3v3 M13 10v3h-3 M6 13H3v-3"/></svg></button>
-            <button id="diagram-in" title="放大电路图">+</button>
+            <button id="diagram-in" class="icon-button" title="放大电路图" aria-label="放大电路图"><svg class="button-icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h10M8 3v10"/></svg></button>
             <button id="colors" class="palette-icon" title="配色" aria-label="配色"><img src="color-disc-icon.png" alt=""></button>
           </div>
         </div>
@@ -94,9 +94,9 @@
         <button id="follow" class="toggle-button" aria-pressed="true">跟随光标</button>
         <label>默认编辑范围 <select id="duration"><option value="step">仿真间隔</option><option value="period" selected>所在周期</option><option value="end">至结束</option></select></label>
         <div class="wave-actions">
-          <button id="wave-out" title="缩小时间轴">−</button>
+          <button id="wave-out" class="icon-button" title="缩小时间轴" aria-label="缩小时间轴"><svg class="button-icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h10"/></svg></button>
           <button id="wave-fit" class="fit-view" title="显示全程波形" aria-label="显示全程波形"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 6V3h3 M10 3h3v3 M13 10v3h-3 M6 13H3v-3"/></svg></button>
-          <button id="wave-in" title="放大时间轴">+</button>
+          <button id="wave-in" class="icon-button" title="放大时间轴" aria-label="放大时间轴"><svg class="button-icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h10M8 3v10"/></svg></button>
         </div>
       </div>
       <div id="wave-scroll"><canvas id="wave" aria-label="信号波形。点击时间刻度移动光标，单击输入电平切换，右键设置 X、Z 或总线值。" tabindex="0"></canvas></div>
