@@ -40,7 +40,7 @@ function exactAliases(net: WireNet) {
   return net.aliases.map(a => a.signal).filter(s => s.bits?.length === bits.length && s.bits.every((bit, i) => bit === bits[i]));
 }
 interface Contact { part: Part; slot: Slot; point: Point }
-interface Trace { route: Route; contacts: Contact[]; bus: boolean }
+interface Trace { route: Route; contacts: Contact[] }
 function valueTitle(value: Logic[], radix: Radix) {
   const decimalUnknown = (radix === 'int' || radix === 'uint') && value.some(v => v === 'x' || v === 'z');
   return formatValue(value, radix) + ' (' + radixShort[radix] + (decimalUnknown ? '，未知位以 BIN 展示' : '') + ')';
@@ -221,7 +221,7 @@ export class Schematic {
           part: nodes[part].part, slot: nodes[part].ports[port],
           point: { x: data.boxes[part].x + at.point.x, y: data.boxes[part].y + at.point.y },
         }));
-        const trace = { route, contacts, bus: nets[index].signal.width > 1 };
+        const trace = { route, contacts };
         for (const bit of new Set(nets[index].signal.bits)) if (typeof bit === 'number') {
           const list = this.traces.get(bit) ?? [];
           list.push(trace); this.traces.set(bit, list);
@@ -481,7 +481,7 @@ export class Schematic {
             end.slot.stub?.classList.add('critical-pin');
             if (isAdapter(start.part)) start.slot.stub?.parentElement?.classList.add('critical-part');
             const points = routeBranch(trace.route, start.point, end.point);
-            if (points.length) this.overlay.append(svg('path', { class: trace.bus ? 'critical-bus' : '', d: points.map((p, j) => `${j ? 'L' : 'M'} ${px(p.x)} ${px(p.y)}`).join(' ') }));
+            if (points.length) this.overlay.append(svg('path', { d: points.map((p, j) => `${j ? 'L' : 'M'} ${px(p.x)} ${px(p.y)}`).join(' ') }));
             if (current.previous === undefined) break;
             end = current.exit!;
             current = segments[current.previous];

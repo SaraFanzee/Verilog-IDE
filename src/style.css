@@ -235,12 +235,11 @@ dialog p { margin: 0; }
 .diagram-legend #legend { border-top: 0; flex-wrap: wrap; }
 #critical-delay { margin-left: auto; padding: 3px 8px; color: var(--critical-color); font-variant-numeric: tabular-nums; }
 .critical-wires { pointer-events: none; }
-.critical-wires path { fill: none; stroke: var(--critical-color); stroke-width: 2.6px; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
+.critical-wires path { fill: none; stroke-linejoin: round; }
+.critical-wires path, .part .critical-pin { stroke: var(--critical-color); stroke-width: 2.6px; vector-effect: non-scaling-stroke; }
 .part.critical-part .schematic-node { stroke: var(--critical-color); stroke-width: 2px; vector-effect: non-scaling-stroke; }
 .part .bus-bar, .part.critical-part .bus-bar { stroke-width: 5; vector-effect: none; }
 .overview .part .bus-bar { stroke-width: .9px; vector-effect: non-scaling-stroke; }
-.part .critical-pin { stroke: var(--critical-color); stroke-width: 2.6px; vector-effect: non-scaling-stroke; }
-.critical-wires .critical-bus, .part .critical-pin.bus-wire { stroke-width: min(2.6px, var(--bus-width)); }
 .transport { gap: 6px 10px; padding: 6px 8px; flex-wrap: wrap; border: 1px solid var(--line); border-radius: 6px; margin-bottom: 6px; }
 .transport form { flex-wrap: wrap; gap: 5px 8px; }
 .transport form input { width: 54px; }

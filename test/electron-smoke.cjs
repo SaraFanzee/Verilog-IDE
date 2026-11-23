@@ -312,6 +312,27 @@ app.whenReady().then(async () => {
   const timing = await value('critical-delay');
   assert.match(timing, /[1-9]\d* (ps|ns)/);
   assert(await evaluate("document.querySelectorAll('.critical-wires path').length >= 2 && document.querySelectorAll('.critical-part').length >= 2"));
+  const criticalStrokes = `(() => {
+    const diagram = document.querySelector('#schematic svg');
+    const highlights = [...diagram.querySelectorAll('.critical-wires path, .critical-pin')];
+    return {
+      busWidth: parseFloat(getComputedStyle(diagram).getPropertyValue('--bus-width')),
+      busPins: diagram.querySelectorAll('.critical-pin.bus-wire').length,
+      strokes: [...new Set(highlights.map(node => {
+        const { strokeWidth, vectorEffect } = getComputedStyle(node);
+        return strokeWidth + ' ' + vectorEffect;
+      }))],
+    };
+  })()`;
+  const fittedStrokes = await evaluate(criticalStrokes);
+  assert(fittedStrokes.busPins > 0, 'fixture includes critical bus pins');
+  assert.deepEqual(fittedStrokes.strokes, ['2.6px non-scaling-stroke']);
+  for (let step = 0; step < 10; step++) await click('diagram-out');
+  const reducedStrokes = await evaluate(criticalStrokes);
+  assert(reducedStrokes.busWidth < 1 && reducedStrokes.busWidth < fittedStrokes.busWidth);
+  assert.equal(reducedStrokes.busPins, fittedStrokes.busPins);
+  assert.deepEqual(reducedStrokes.strokes, fittedStrokes.strokes);
+  await click('diagram-fit');
   await click('colors');
   assert(await evaluate(`(() => {
     const controls = [...document.querySelectorAll('#color-controls label')];
