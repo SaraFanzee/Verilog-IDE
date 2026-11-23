@@ -188,6 +188,7 @@ app.whenReady().then(async () => {
   assert.equal(await evaluate("document.getElementById('workspace').dataset.editor"), 'hidden');
   await click('editor-more'); await click('editor-more');
   assert(await evaluate("!!document.querySelector('.editor-panel .panel-header .synth-actions #synthesize + #settings')"));
+  assert.equal(await evaluate("document.getElementById('settings').getBoundingClientRect().width"), 12);
   assert(await evaluate("!!document.querySelector('.diagram-panel .panel-header [role=tablist] #mode-rtl[aria-selected=true] + #mode-gate[aria-selected=false]')"));
   await click('settings');
   await evaluate("document.getElementById('extra-commands').value='check'; document.querySelector('#settings-form button[value=apply]').click()");
@@ -199,6 +200,20 @@ app.whenReady().then(async () => {
   assert((await value('log')).includes('check\nwrite_json design.json'));
   assert(await evaluate("Math.abs(document.querySelector('.editor-panel').clientWidth / document.getElementById('workspace').clientWidth - .25) < .01"));
   assert(await evaluate("document.querySelector('.bus-wire + .wire-hit title').textContent.includes('4 bit')"));
+  assert.deepEqual(await evaluate("['step', 'cycle', 'show-signals'].map(id => document.getElementById(id).textContent)"), ['>|', '>||', '声明信号']);
+  assert(await evaluate(`(() => {
+    const icons = [...document.querySelectorAll('#signals .signal-icon')];
+    return ['clock', 'input', 'output'].every(kind => icons.some(icon => icon.classList.contains(kind)))
+      && icons.every(icon => icon.nextElementSibling.matches('.signal-name')
+        && icon.parentElement.title === '点击以在波形图中添加/移除');
+  })()`), 'clock, input and output icons precede names and show the waveform action tooltip');
+  assert.equal(await evaluate("document.getElementById('follow').getAttribute('aria-pressed')"), 'true');
+  const followColor = await evaluate("getComputedStyle(document.getElementById('follow')).backgroundColor");
+  await click('follow');
+  assert.equal(await evaluate("document.getElementById('follow').getAttribute('aria-pressed')"), 'false');
+  assert.notEqual(await evaluate("getComputedStyle(document.getElementById('follow')).backgroundColor"), followColor);
+  await click('follow');
+  assert.equal(await evaluate("document.getElementById('follow').getAttribute('aria-pressed')"), 'true');
   assert(await evaluate("['new','open','save'].every(id => { const b=document.getElementById(id); return b.querySelector('svg') && !b.textContent.trim() && b.title === b.getAttribute('aria-label'); })"));
   assert(await evaluate("document.querySelector('.schematic-node.not') && document.querySelector('circle.inversion')").then(Boolean));
   assert(await checkCircles());
@@ -252,6 +267,22 @@ app.whenReady().then(async () => {
   await click('rewind');
   await click('colors');
   assert.equal(await evaluate("document.querySelectorAll('#color-controls input').length"), 15);
+  assert(await evaluate(`(() => {
+    const controls = [...document.querySelectorAll('#color-controls label')];
+    const input = controls.find(label => label.textContent === '输入（含时钟）填充').querySelector('input');
+    const output = controls.find(label => label.textContent === '输出填充').querySelector('input');
+    const previous = [input.value, output.value];
+    const set = (control, value) => { control.value = value; control.dispatchEvent(new Event('input')); };
+    try {
+      set(input, '#28759a'); set(output, '#985124');
+      return ['clock', 'input', 'output'].every(kind => {
+        const icon = document.querySelector('.signal-icon.' + kind + ' path');
+        const node = document.querySelector('.schematic-node.' + kind);
+        const expected = kind === 'output' ? 'rgb(152, 81, 36)' : 'rgb(40, 117, 154)';
+        return getComputedStyle(icon).fill === expected && getComputedStyle(node).fill === expected;
+      });
+    } finally { set(input, previous[0]); set(output, previous[1]); }
+  })()`), 'signal symbols update with the schematic palette');
   assert(await evaluate(`(() => {
     const control = [...document.querySelectorAll('#color-controls label')].find(l => l.textContent === '总线边框').querySelector('input');
     const buses = [...document.querySelectorAll('path.bus-wire, line.bus-wire')];
@@ -308,7 +339,14 @@ app.whenReady().then(async () => {
   await wait("document.getElementById('preview').textContent.includes('已计算至 100 ns')", 'future resimulation');
   await wait("document.querySelector('#schematic [aria-label=reset] text:last-child').textContent === '0'", 'schematic and waveform agree after rewind');
   await click('show-parts');
+  assert(await evaluate(`(() => {
+    const rows = [...document.querySelectorAll('#parts li')];
+    const total = rows.reduce((sum, row) => sum + Number(row.querySelector('button span:last-child').textContent.slice(1)), 0);
+    return total > 0 && Number(document.getElementById('inspector-count').textContent) === total
+      && document.querySelector('.part-columns .part-actions').textContent === '延迟/间隔清零默认';
+  })()`), 'component count is the sum of instances and delay buttons are in the header');
   await click('critical-path');
+  assert.equal(await evaluate("document.getElementById('critical-path').getAttribute('aria-pressed')"), 'true');
   const timing = await value('critical-delay');
   assert.match(timing, /[1-9]\d* (ps|ns)/);
   assert(await evaluate("document.querySelectorAll('.critical-wires path').length >= 2 && document.querySelectorAll('.critical-part').length >= 2"));
@@ -358,6 +396,7 @@ app.whenReady().then(async () => {
   await click('reset-delays');
   assert.equal(await value('critical-delay'), timing);
   await click('critical-path');
+  assert.equal(await evaluate("document.getElementById('critical-path').getAttribute('aria-pressed')"), 'false');
   assert.equal(await evaluate("document.querySelectorAll('.critical-wires path, .critical-part, .critical-pin').length"), 0);
   await click('critical-path');
   assert(await evaluate("[...document.querySelectorAll('#parts input')].every(input => input.value !== '0')"));
@@ -387,7 +426,7 @@ app.whenReady().then(async () => {
   assert.equal(await evaluate("document.querySelector('[aria-label=\"data_in 的显示进制\"]').textContent"), 'BIN');
   await wait("document.querySelector('.part[data-name=data_in] > title')?.textContent.includes('(BIN)')", 'port hover follows wave radix');
   await evaluate("document.querySelector('[title=\"移除 data_in\"]').click()");
-  assert.equal(await evaluate("document.querySelector('#signals button[title=data_in]').getAttribute('aria-pressed')"), 'false');
+  assert.equal(await evaluate("[...document.querySelectorAll('#signals .signal-control')].find(button => button.querySelector('.signal-name').textContent === 'data_in').getAttribute('aria-pressed')"), 'false');
   assert(await evaluate("getComputedStyle(document.querySelector('.watch-name')).cursor === 'default' && getComputedStyle(document.querySelector('#wave')).cursor === 'crosshair'"));
   assert(await evaluate("[...document.querySelectorAll('circle.inversion')].every(c => getComputedStyle(c).fill === 'none')"));
   const viewport = "document.querySelector('#schematic svg').getAttribute('viewBox')";
@@ -567,6 +606,12 @@ app.whenReady().then(async () => {
   await evaluate("document.getElementById('top').value='tri_gate'; document.getElementById('extra-commands').value=''; document.querySelector('#settings-form button[value=apply]').click()");
   await buildMode('gate');
   await wait("document.querySelectorAll('#schematic svg[aria-label=tri_gate] .schematic-node.tribuf').length === 3", 'three separately mapped TBUFs');
+  await click('show-parts');
+  assert(await evaluate(`(() => {
+    const rows = [...document.querySelectorAll('#parts li')];
+    const total = rows.reduce((sum, row) => sum + Number(row.querySelector('button span:last-child').textContent.slice(1)), 0);
+    return total > rows.length && Number(document.getElementById('inspector-count').textContent) === total;
+  })()`), 'repeated component types count once per instance');
   assert(await evaluate("[...document.querySelectorAll('.schematic-node.tribuf')].every(body => body.parentNode.querySelector('title').textContent.includes('$_TBUF_'))"));
   await checkSymbolBounds('tribuf');
   console.log('OK RTL and gate tri-state symbols have the same reference size; MUX title and shortened literal fit');

@@ -35,7 +35,7 @@ input[type="checkbox"], input[type="range"] { accent-color: var(--accent); }
 button.primary { background: var(--accent); border-color: var(--accent); color: #102722; font-weight: 700; padding-inline: 14px; }
 button.primary:hover:enabled { background: #91f3de; }
 button.run { color: var(--accent); background: var(--accent-dark); border-color: #32645e; min-width: 77px; }
-button.selected { color: var(--accent); border-color: #32645e; background: var(--accent-dark); }
+button.selected, button.toggle-button[aria-pressed="true"] { color: var(--accent); border-color: #32645e; background: var(--accent-dark); }
 h2 { margin: 0; font-size: 13px; font-weight: 650; white-space: nowrap; }
 .spacer { flex: 1; }
 .appbar, .transport { display: flex; align-items: center; gap: 9px; padding: 8px 13px; border-bottom: 1px solid var(--line); }
@@ -150,13 +150,19 @@ main { min-height: 0; flex: 1; display: flex; flex-direction: column; padding: 8
 #signals, #parts { margin: 0; padding: 4px 6px; list-style: none; min-height: 0; overflow: auto; }
 .signal-row, .part-row { display: flex; align-items: center; min-height: 34px; gap: 4px; border-bottom: 1px solid #252f3b; }
 .signal-row button, .part-row button { flex: 1; display: flex; justify-content: space-between; align-items: center; gap: 5px; min-width: 0; background: transparent; border-color: transparent; }
-.signal-row button span:first-child, .part-row .part-name { overflow: hidden; text-overflow: ellipsis; font: 12px var(--mono); }
+.signal-row .signal-name, .part-row .part-name { overflow: hidden; text-overflow: ellipsis; font: 12px var(--mono); }
+.signal-row .signal-name { flex: 1; text-align: left; }
+.signal-icon { width: 14px; height: 14px; flex: none; }
+.signal-icon.input, .signal-icon.clock { --signal-fill: var(--input-fill); --signal-stroke: var(--input-stroke); }
+.signal-icon.output { --signal-fill: var(--output-fill); --signal-stroke: var(--output-stroke); }
+.signal-icon path { fill: var(--signal-fill); }
+.signal-icon rect { fill: none; stroke: var(--signal-stroke); }
 .signal-row button:hover:enabled, .part-row button:hover:enabled { background: var(--surface); border-color: var(--line); }
 .signal-row .tag { font: 11px var(--font); color: var(--dim); white-space: nowrap; }
 .signal-row .watched { color: var(--accent); }
-.part-columns { display: flex; justify-content: space-between; color: var(--muted); padding: 9px 8px 2px; font-size: 11px; }
-.part-actions { display: flex; gap: 5px; padding: 7px 6px 0; flex-wrap: wrap; }
-.part-actions button { min-height: 25px; padding-inline: 6px; }
+.part-columns { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 3px 6px; color: var(--muted); padding: 5px 8px 2px; font-size: 11px; }
+.part-actions { display: flex; align-items: center; gap: 4px; margin-left: auto; white-space: nowrap; }
+.part-actions button { min-height: 20px; padding: 1px 4px; }
 .signal-row .radix-chip { flex: 0 0 auto; justify-content: center; min-height: 22px; padding-inline: 4px; color: var(--muted); font: 10px var(--mono); }
 .signal-menu { position: fixed; min-width: 165px; max-width: 310px; z-index: 40; display: grid; gap: 2px; padding: 5px; border: 1px solid #435166; border-radius: 6px; background: var(--panel); box-shadow: 0 7px 25px #0008; }
 .signal-menu-title { padding: 4px 6px; color: var(--muted); font: 12px var(--mono); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -201,7 +207,7 @@ dialog p { margin: 0; }
 }
 .synth-actions { display: flex; flex: none; white-space: nowrap; }
 .synth-actions #synthesize { border-radius: 5px 0 0 5px; }
-.synth-actions #settings { border-radius: 0 5px 5px 0; border-left: 1px solid #40766d; padding-inline: 7px; }
+.synth-actions #settings { width: 12px; border-radius: 0 5px 5px 0; border-left: 1px solid #40766d; padding-inline: 0; }
 .results, .diagram-row { flex: 1; min-width: 0; min-height: 0; display: flex; }
 .results { flex-direction: column; }
 .workspace { position: relative; }
@@ -230,7 +236,6 @@ dialog p { margin: 0; }
 .split-actions button:is(:hover, :focus-visible)::after { color: var(--accent); }
 .workspace[data-editor="full"] .split-actions { left: 50%; transform: translate(-100%, -50%); }
 .workspace[data-editor="hidden"] .split-actions { left: 50%; transform: translateY(-50%); }
-.critical-toggle { display: inline-flex; align-items: center; gap: 3px; white-space: nowrap; cursor: pointer; }
 .diagram-legend { display: flex; align-items: center; flex-wrap: wrap; border-top: 1px solid var(--line); }
 .diagram-legend #legend { border-top: 0; flex-wrap: wrap; }
 #critical-delay { margin-left: auto; padding: 3px 8px; color: var(--critical-color); font-variant-numeric: tabular-nums; }

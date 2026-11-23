@@ -34,15 +34,15 @@
       <div class="results">
   <section class="transport" aria-label="仿真控制">
     <form id="timing">
-      <label>最小间隔<input id="step-size" type="number" min="1" max="1000000" value="50" required><span>ps</span></label>
+      <label>仿真间隔<input id="step-size" type="number" min="1" max="1000000" value="50" required><span>ps</span></label>
       <label>时钟周期<input id="period" type="number" min="0.002" step="0.001" max="10000000" value="1" required><span>ns</span></label>
       <label>结束时间<input id="end" type="number" min="0.001" step="0.001" max="1000000000" value="100" required><span>ns</span></label>
     </form>
     <div class="playback">
       <div class="transport-buttons">
         <button id="rewind" title="回到 0 ns，保留激励" aria-label="回到零">■</button>
-        <button id="step" title="前进一个最小仿真间隔" aria-label="单步">&gt;</button>
-        <button id="cycle" title="前进一个时钟周期" aria-label="整周期">&gt;&gt;</button>
+        <button id="step" title="前进一个仿真间隔" aria-label="单步">&gt;|</button>
+        <button id="cycle" title="前进一个时钟周期" aria-label="整周期">&gt;||</button>
         <button id="play" class="run"><svg viewBox="0 0 16 16" aria-hidden="true"><path class="play-icon" d="M3 1.5 14 8 3 14.5Z"/><g class="pause-icon"><rect x="3" y="2" width="3.5" height="12"/><rect x="9.5" y="2" width="3.5" height="12"/></g></svg><span id="play-label">运行</span></button>
       </div>
       <label class="speed">速度<input type="range" id="speed" min="1" max="100" value="10"><output id="speed-label">10 ns/s</output></label>
@@ -61,7 +61,7 @@
           </div>
           <div id="scope-path"></div>
           <div class="diagram-actions">
-            <label class="critical-toggle"><input id="critical-path" type="checkbox" disabled>关键路径</label>
+            <button id="critical-path" class="toggle-button" aria-pressed="false" disabled>关键路径</button>
             <button id="diagram-out" title="缩小电路图">−</button>
             <button id="diagram-fit" class="fit-view" title="适配电路图窗口" aria-label="适配电路图窗口"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 6V3h3 M10 3h3v3 M13 10v3h-3 M6 13H3v-3"/></svg></button>
             <button id="diagram-in" title="放大电路图">+</button>
@@ -74,7 +74,7 @@
       <div class="splitter vertical" id="inspect-split" aria-hidden="true"></div>
       <aside class="inspector panel" aria-label="信号与元件">
         <div class="panel-header with-tabs">
-          <button class="selected" id="show-signals">信号</button><button id="show-parts">元件清单</button>
+          <button class="selected" id="show-signals">声明信号</button><button id="show-parts">元件清单</button>
           <span class="spacer"></span><span id="inspector-count"></span>
         </div>
         <div id="signal-pane">
@@ -82,8 +82,7 @@
           <ul id="signals"></ul>
         </div>
         <div id="part-pane" hidden>
-          <div class="part-actions"><button id="zero-delays">延迟全部清零</button><button id="reset-delays">恢复默认</button></div>
-          <div class="part-columns"><span>类型 · 数量</span><span>延迟 / 间隔</span></div>
+          <div class="part-columns"><span>类型 · 数量</span><div class="part-actions"><span>延迟/间隔</span><button id="zero-delays" title="延迟全部清零">清零</button><button id="reset-delays" title="恢复默认延迟">默认</button></div></div>
           <ul id="parts"></ul>
         </div>
       </aside>
@@ -92,8 +91,8 @@
     <section class="wave-panel panel" aria-label="波形">
       <div class="panel-header">
         <h2>波形</h2><span id="preview"></span><div class="spacer"></div>
-        <label><input id="follow" type="checkbox" checked> 跟随光标</label>
-        <label>编辑范围 <select id="duration"><option value="step">最小间隔</option><option value="period" selected>所在周期</option><option value="end">至结束</option></select></label>
+        <button id="follow" class="toggle-button" aria-pressed="true">跟随光标</button>
+        <label>默认编辑范围 <select id="duration"><option value="step">仿真间隔</option><option value="period" selected>所在周期</option><option value="end">至结束</option></select></label>
         <div class="wave-actions">
           <button id="wave-out" title="缩小时间轴">−</button>
           <button id="wave-fit" class="fit-view" title="显示全程波形" aria-label="显示全程波形"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 6V3h3 M10 3h3v3 M13 10v3h-3 M6 13H3v-3"/></svg></button>
@@ -138,7 +137,7 @@
       <h2 id="value-title">输入激励</h2><p id="value-time"></p>
       <div class="dialog-grid"><label>进制<select id="value-radix"><option value="bin">二进制</option><option value="hex">十六进制</option><option value="uint">无符号十进制</option><option value="int">有符号十进制</option></select></label>
       <label>数值<input id="value-input" spellcheck="false" required></label></div>
-      <label id="value-duration-label">生效范围<select id="value-duration"><option value="step">最小间隔</option><option value="period">所在周期</option><option value="end">至结束</option></select></label>
+      <label id="value-duration-label">生效范围<select id="value-duration"><option value="step">仿真间隔</option><option value="period">所在周期</option><option value="end">至结束</option></select></label>
       <p id="value-error" class="error" role="alert"></p>
       <div class="dialog-actions"><button type="button" id="value-cancel">取消</button><button type="submit" class="primary">应用</button></div>
     </form>

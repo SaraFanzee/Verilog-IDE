@@ -406,12 +406,36 @@ function showLog(visible: boolean) {
   button('log-toggle').setAttribute('aria-expanded', String(visible));
 }
 
+const signalGlyphs = {
+  clock: ['时钟', 'M2.5 10h3V5h6v5h2v1.5H10v-5H7v5H2.5z'],
+  input: ['输入', 'M5 4h6v1.5H8.75v5H11V12H5v-1.5h2.25v-5H5z'],
+  output: ['输出', 'M8 4a4 4 0 1 0 0 8 4 4 0 0 0 0-8z M8 5.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5z'],
+} as const;
+
+function signalIcon(kind: keyof typeof signalGlyphs) {
+  const [label, glyph] = signalGlyphs[kind];
+  const namespace = 'http://www.w3.org/2000/svg';
+  const icon = document.createElementNS(namespace, 'svg');
+  icon.setAttribute('class', `signal-icon ${kind}`);
+  icon.setAttribute('viewBox', '0 0 16 16');
+  icon.setAttribute('role', 'img');
+  icon.setAttribute('aria-label', label);
+  const shape = document.createElementNS(namespace, 'path');
+  shape.setAttribute('fill-rule', 'evenodd');
+  shape.setAttribute('d', `M1 1h14v14H1z ${glyph}`);
+  const outline = document.createElementNS(namespace, 'rect');
+  outline.setAttribute('x', '1'); outline.setAttribute('y', '1');
+  outline.setAttribute('width', '14'); outline.setAttribute('height', '14');
+  icon.append(shape, outline);
+  return icon;
+}
+
 function renderInspector() {
   const filter = input('signal-filter').value.trim().toLowerCase();
   const signals = (design?.signals ?? []).filter(signal => signal.name.toLowerCase().includes(filter));
   const partCounts = new Map<string, number>();
   for (const cell of design?.cells ?? []) partCounts.set(cell.type, (partCounts.get(cell.type) ?? 0) + 1);
-  el('inspector-count').textContent = String(inspector === 'signals' ? signals.length : partCounts.size);
+  el('inspector-count').textContent = String(inspector === 'signals' ? signals.length : design?.cells.length ?? 0);
   el('signal-pane').hidden = inspector !== 'signals';
   el('part-pane').hidden = inspector !== 'parts';
   button('zero-delays').disabled = button('reset-delays').disabled = !partCounts.size;
@@ -422,23 +446,24 @@ function renderInspector() {
     li.className = 'signal-row';
     const control = document.createElement('button');
     control.disabled = !signal.bits;
-    control.title = signal.bits ? signal.name : '该源码信号在当前网表中不可观察';
+    control.className = 'signal-control';
+    control.title = signal.bits ? '点击以在波形图中添加/移除' : '该源码信号在当前网表中不可观察';
     const name = document.createElement('span');
+    name.className = 'signal-name';
     name.textContent = signal.name;
     const tag = document.createElement('span');
     tag.className = 'tag';
-    tag.textContent = [signal.clock ? '时钟' : signal.direction === 'input' ? '入' : signal.direction === 'output' ? '出' : signal.direction === 'inout' ? '双向' : '', signal.width + 'b', signal.bits ? (watched.has(signal.id) ? '✓' : '+') : '—'].filter(Boolean).join(' ');
-    if (watched.has(signal.id)) tag.classList.add('watched');
-    control.setAttribute('aria-pressed', String(watched.has(signal.id)));
+    const kind = signal.clock ? 'clock' : signal.direction;
+    if (kind === 'clock' || kind === 'input' || kind === 'output') control.append(signalIcon(kind));
     control.append(name, tag);
-    control.onclick = () => {
-      setWatched(signal, !watched.has(signal.id));
-      control.setAttribute('aria-pressed', String(watched.has(signal.id)));
-      const details = tag.textContent!.split(' ');
-      details[details.length - 1] = watched.has(signal.id) ? '✓' : '+';
-      tag.textContent = details.join(' ');
-      tag.classList.toggle('watched', watched.has(signal.id));
+    const updateWatch = () => {
+      const active = watched.has(signal.id);
+      control.setAttribute('aria-pressed', String(active));
+      tag.textContent = `${kind === 'inout' ? '双向 ' : ''}${signal.width}b ${signal.bits ? (active ? '✓' : '+') : '—'}`;
+      tag.classList.toggle('watched', active);
     };
+    updateWatch();
+    control.onclick = () => { setWatched(signal, !watched.has(signal.id)); updateWatch(); };
     li.append(control);
     if (signal.bits) {
       const display = document.createElement('button');
@@ -507,10 +532,10 @@ function showScope() {
 }
 
 function refreshCriticalPath() {
-  const toggle = input('critical-path');
+  const toggle = button('critical-path');
   const label = el('critical-delay');
   toggle.disabled = !design;
-  label.hidden = !design || !toggle.checked;
+  label.hidden = !design || toggle.getAttribute('aria-pressed') !== 'true';
   const scope = design?.scopes.find(item => item.id === scopes.at(-1));
   if (!design || !scope || label.hidden) { schematic.setCriticalPath(); return; }
   const result = criticalPath(design, scope, cellDelays);
@@ -518,7 +543,7 @@ function refreshCriticalPath() {
     const { ticks, steps } = result.path;
     const ps = ticks * stepPs;
     label.textContent = '关键路径 · ' + (ps >= 1000 ? ps / 1000 + ' ns' : ps + ' ps');
-    label.title = ticks + ' 个最小间隔\n' + steps.join(' → ');
+    label.title = ticks + ' 个仿真间隔\n' + steps.join(' → ');
     schematic.setCriticalPath(result.path);
   } else {
     label.textContent = label.title = result.message;
@@ -625,7 +650,7 @@ function zoomWave(scale: number, anchor?: number) {
   if (next !== viewSpan) setView(focal - (focal - viewStart) * next / viewSpan, next);
 }
 function focusCursor() {
-  if (!input('follow').checked || (cursor >= viewStart && cursor < viewEnd())) return;
+  if (button('follow').getAttribute('aria-pressed') !== 'true' || (cursor >= viewStart && cursor < viewEnd())) return;
   viewStart = Math.max(0, Math.min(end - viewSpan, cursor - Math.floor(viewSpan * .2)));
   updateNavigation();
 }
@@ -756,7 +781,7 @@ el<HTMLFormElement>('clock-form').onsubmit = event => {
   if (!clockTarget) return;
   const value = input('clock-period').value === '' ? undefined : Math.round(input('clock-period').valueAsNumber * 1000) / stepPs;
   if (value !== undefined && (!Number.isSafeInteger(value) || value < 2 || value % 2)) {
-    el('clock-error').textContent = '时钟周期应为最小间隔的正偶数倍。';
+    el('clock-error').textContent = '时钟周期应为仿真间隔的正偶数倍。';
     return;
   }
   if (value === undefined) clockOverrides.delete(clockTarget.id);
@@ -940,13 +965,21 @@ on('play', 'click', toggleRun);
 on('diagram-in', 'click', () => schematic.scale(1.25));
 on('diagram-out', 'click', () => schematic.scale(.8));
 on('diagram-fit', 'click', () => schematic.fit());
-on('critical-path', 'change', refreshCriticalPath);
+on('critical-path', 'click', () => {
+  const toggle = button('critical-path');
+  toggle.setAttribute('aria-pressed', String(toggle.getAttribute('aria-pressed') !== 'true'));
+  refreshCriticalPath();
+});
 on('wave-in', 'click', () => zoomWave(.5));
 on('wave-out', 'click', () => zoomWave(2));
 on('wave-fit', 'click', () => setView(0, end));
 on('speed', 'input', () => { el('speed-label').textContent = input('speed').value + ' ns/s'; });
 bindWaveRange();
-on('follow', 'change', () => { focusCursor(); request(); });
+on('follow', 'click', () => {
+  const toggle = button('follow');
+  toggle.setAttribute('aria-pressed', String(toggle.getAttribute('aria-pressed') !== 'true'));
+  focusCursor(); request();
+});
 function changeAllDelays(zero: boolean) {
   if (!design) return;
   stop();
@@ -975,8 +1008,8 @@ function applyTiming() {
   const nextPeriod = Math.round(input('period').valueAsNumber * 1000) / step;
   let error = '';
   if (invalid) error = (invalid.labels?.[0]?.textContent?.trim() ?? '') + '：' + invalid.validationMessage;
-  else if (!Number.isSafeInteger(nextPeriod) || nextPeriod < 2 || nextPeriod % 2) error = '时钟周期应为最小间隔的正偶数倍。';
-  else if (!Number.isSafeInteger(nextEnd) || nextEnd < 1 || nextEnd > 100_000) error = '结束时间应为最小间隔的整数倍，范围为 1 至 100,000 个间隔。';
+  else if (!Number.isSafeInteger(nextPeriod) || nextPeriod < 2 || nextPeriod % 2) error = '时钟周期应为仿真间隔的正偶数倍。';
+  else if (!Number.isSafeInteger(nextEnd) || nextEnd < 1 || nextEnd > 100_000) error = '结束时间应为仿真间隔的整数倍，范围为 1 至 100,000 个间隔。';
   if (error) {
     timingForm.dataset.error = error;
     status(error, true);
@@ -999,7 +1032,7 @@ function applyTiming() {
   updateNavigation();
   draw();
   request({ type: 'timing', timing: simTiming(), resetInputs });
-  status(resetInputs ? '最小间隔已变更，输入激励已重置。' : '已更新时间设置。');
+  status(resetInputs ? '仿真间隔已变更，输入激励已重置。' : '已更新时间设置。');
 }
 // Let multi-digit edits settle before rescaling time and resetting the stimulus.
 timingForm.oninput = () => {
