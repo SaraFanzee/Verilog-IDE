@@ -407,7 +407,7 @@ function showLog(visible: boolean) {
 }
 
 const signalGlyphs = {
-  clock: ['时钟', 'M2.5 10h3V5h6v5h2v1.5H10v-5H7v5H2.5z'],
+  clock: ['时钟', 'M2.5 9.75H5v-5h6v5h2.5v1.5H9.5v-5h-3v5h-4z'],
   input: ['输入', 'M5 4h6v1.5H8.75v5H11V12H5v-1.5h2.25v-5H5z'],
   output: ['输出', 'M8 4a4 4 0 1 0 0 8 4 4 0 0 0 0-8z M8 5.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5z'],
 } as const;

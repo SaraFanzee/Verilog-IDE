@@ -207,6 +207,11 @@ app.whenReady().then(async () => {
       && icons.every(icon => icon.nextElementSibling.matches('.signal-name')
         && icon.parentElement.title === '点击以在波形图中添加/移除');
   })()`), 'clock, input and output icons precede names and show the waveform action tooltip');
+  assert(await evaluate(`(() => {
+    const clock = document.querySelector('.signal-icon.clock path');
+    const cutout = (x, y) => !clock.isPointInFill(new DOMPoint(x, y));
+    return cutout(2.75, 10.5) && cutout(13.25, 10.5) && cutout(8, 4.875) && cutout(4, 11.125);
+  })()`), 'clock cutout reaches the same margins on the left and right and is vertically centered');
   assert.equal(await evaluate("document.getElementById('follow').getAttribute('aria-pressed')"), 'true');
   const followColor = await evaluate("getComputedStyle(document.getElementById('follow')).backgroundColor");
   await click('follow');
