@@ -170,7 +170,14 @@ app.whenReady().then(async () => {
   const editMenu = "(document.querySelector('.monaco-editor .shadow-root-host')?.shadowRoot ?? document).querySelector('.monaco-menu')";
   await wait(editMenu, 'editor context menu');
   const actions = await evaluate(`[...${editMenu}.querySelectorAll('.action-label')].map(el=>el.textContent.trim())`);
-  for (const action of ['撤销','重做','删除','全选','Cut','Copy','Paste']) assert(actions.includes(action), JSON.stringify(actions));
+  assert.deepEqual(actions.filter(Boolean), ['更改所有匹配项', '撤销', '重做', '剪切', '复制', '粘贴', '删除', '全选', '命令面板']);
+  await new Promise(resolve => setTimeout(resolve, 150));
+  await evaluate(`[...${editMenu}.querySelectorAll('.action-label')].at(-1).dispatchEvent(new MouseEvent('mouseup', { bubbles: true }))`);
+  await wait("document.querySelector('.quick-input-list .monaco-list-row')", 'editor command palette');
+  const paletteItems = "[...document.querySelectorAll('.quick-input-list .monaco-list-row .label-name')].map(label => label.textContent)";
+  assert((await evaluate(paletteItems)).includes('裁剪尾随空格'), 'the command palette uses Chinese command names');
+  await webContents.insertText('删除单词');
+  await wait(`${paletteItems}.includes('删除单词')`, 'search for a translated editor command');
   webContents.sendInputEvent({type:'keyDown', keyCode:'Escape'});
   webContents.sendInputEvent({type:'keyUp', keyCode:'Escape'});
   await wait('!(' + editMenu + ')', 'editor menu closed');

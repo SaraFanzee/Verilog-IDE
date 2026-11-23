@@ -1,5 +1,6 @@
 import { build } from 'esbuild';
 import { cp, mkdir } from 'node:fs/promises';
+import { monacoChinese } from './monaco-zh-cn.mjs';
 
 await mkdir('dist', { recursive: true });
 await Promise.all([
@@ -7,7 +8,7 @@ await Promise.all([
   build({
     entryPoints: { renderer: 'src/renderer.ts', 'sim-worker': 'src/sim-worker.ts', 'layout-worker': 'src/layout-worker.ts', 'editor-worker': 'node_modules/monaco-editor/esm/vs/editor/editor.worker.js' },
     bundle: true, platform: 'browser', target: 'chrome130', format: 'iife', outdir: 'dist',
-    loader: { '.ttf': 'file' }, legalComments: 'linked',
+    loader: { '.ttf': 'file' }, legalComments: 'linked', plugins: [monacoChinese()],
   }),
   cp('src/index.html', 'dist/index.html'),
   cp('src/color-disc-icon.png', 'dist/color-disc-icon.png'),
