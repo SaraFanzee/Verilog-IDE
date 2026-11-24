@@ -137,6 +137,16 @@ app.whenReady().then(async () => {
     }));
   }
   await wait("document.querySelector('.monaco-editor') && document.getElementById('lint-status').textContent.includes('语法通过')", 'live lint');
+  await click('editor-less');
+  await click('show-parts');
+  assert(await evaluate(`(() => {
+    const heading = document.querySelector('.part-delay-heading').getBoundingClientRect();
+    const zero = document.getElementById('zero-delays').getBoundingClientRect();
+    const reset = document.getElementById('reset-delays').getBoundingClientRect();
+    return heading.width > 0 && heading.bottom <= zero.top && zero.top === reset.top && heading.right === reset.right;
+  })()`), 'delay buttons share a row below the right-aligned delay heading');
+  await click('show-signals');
+  await click('editor-more');
   assert.equal(Menu.getApplicationMenu(), null);
   assert.deepEqual(await evaluate("[...document.querySelectorAll('.editor-panel .panel-header .file-actions button')].map(button => button.id)"), ['new', 'open', 'save']);
   for (const prefix of ['diagram', 'wave']) {
@@ -368,9 +378,8 @@ app.whenReady().then(async () => {
   assert(await evaluate(`(() => {
     const rows = [...document.querySelectorAll('#parts li')];
     const total = rows.reduce((sum, row) => sum + Number(row.querySelector('button span:last-child').textContent.slice(1)), 0);
-    return total > 0 && Number(document.getElementById('inspector-count').textContent) === total
-      && document.querySelector('.part-columns .part-actions').textContent === '延迟/间隔清零默认';
-  })()`), 'component count is the sum of instances and delay buttons are in the header');
+    return total > 0 && Number(document.getElementById('inspector-count').textContent) === total;
+  })()`), 'component count is the sum of instances');
   await click('critical-path');
   assert.equal(await evaluate("document.getElementById('critical-path').getAttribute('aria-pressed')"), 'true');
   const timing = await value('critical-delay');

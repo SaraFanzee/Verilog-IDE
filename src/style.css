@@ -174,8 +174,9 @@ main { min-height: 0; flex: 1; display: flex; flex-direction: column; padding: 8
 .watch-mark[data-state="added"] { clip-path: polygon(0 47%, 15% 34%, 39% 62%, 86% 10%, 100% 24%, 39% 90%); }
 .watch-mark[data-state="available"] { clip-path: polygon(42% 6%, 58% 6%, 58% 42%, 94% 42%, 94% 58%, 58% 58%, 58% 94%, 42% 94%, 42% 58%, 6% 58%, 6% 42%, 42% 42%); }
 .watch-mark[data-state="unavailable"] { clip-path: inset(42% 6%); }
-.part-columns { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 3px 6px; color: var(--muted); padding: 5px 8px 2px; font-size: 11px; }
-.part-actions { display: flex; align-items: center; gap: 4px; margin-left: auto; white-space: nowrap; }
+.part-columns { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 3px 6px; color: var(--muted); padding: 5px 8px 2px; font-size: 11px; }
+.part-delay-heading { justify-self: end; }
+.part-actions { grid-column: 2; display: flex; justify-content: flex-end; gap: 4px; white-space: nowrap; }
 .part-actions button { min-height: 20px; padding: 1px 4px; }
 .signal-row .radix-chip { flex: 0 0 auto; justify-content: center; min-height: 22px; padding-inline: 4px; color: var(--muted); font: 10px var(--mono); }
 .signal-menu { position: fixed; min-width: 165px; max-width: 310px; z-index: 40; display: grid; gap: 2px; padding: 5px; border: 1px solid #435166; border-radius: 6px; background: var(--panel); box-shadow: 0 7px 25px #0008; }
