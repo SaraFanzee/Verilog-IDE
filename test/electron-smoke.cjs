@@ -185,9 +185,19 @@ app.whenReady().then(async () => {
   await evaluate(`[...${editMenu}.querySelectorAll('.action-label')].at(-1).dispatchEvent(new MouseEvent('mouseup', { bubbles: true }))`);
   await wait("document.querySelector('.quick-input-list .monaco-list-row')", 'editor command palette');
   const paletteItems = "[...document.querySelectorAll('.quick-input-list .monaco-list-row .label-name')].map(label => label.textContent)";
-  assert((await evaluate(paletteItems)).includes('裁剪尾随空格'), 'the command palette uses Chinese command names');
+  // Monaco only renders the visible rows, so search for each translated label.
+  const trimLabel = '裁剪尾随空格';
+  await webContents.insertText(trimLabel);
+  await wait(`${paletteItems}.includes(${JSON.stringify(trimLabel)})`, 'search for the translated trim command');
+  const previousSearchSelected = await evaluate(`(() => {
+    const input = document.activeElement;
+    if (!(input instanceof HTMLInputElement) || !input.value.endsWith(${JSON.stringify(trimLabel)})) return false;
+    input.setSelectionRange(input.value.length - ${trimLabel.length}, input.value.length);
+    return true;
+  })()`);
+  assert(previousSearchSelected, 'the command palette search input retains focus');
   await webContents.insertText('删除单词');
-  await wait(`${paletteItems}.includes('删除单词')`, 'search for a translated editor command');
+  await wait(`${paletteItems}.includes('删除单词')`, 'search for the translated delete-word command');
   webContents.sendInputEvent({type:'keyDown', keyCode:'Escape'});
   webContents.sendInputEvent({type:'keyUp', keyCode:'Escape'});
   await wait('!(' + editMenu + ')', 'editor menu closed');
