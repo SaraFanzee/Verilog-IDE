@@ -1,3 +1,5 @@
+import { message } from './i18n';
+import type { Message } from './i18n';
 import type { Design, Part, Scope } from './design';
 import type { Bit } from './protocol';
 import { defaultDelay } from './simulation';
@@ -11,7 +13,7 @@ export interface CriticalPath {
   steps: string[];
   parts: Set<string>;
 }
-type Analysis = { path: CriticalPath } | { message: string };
+type Analysis = { path: CriticalPath } | { message: Message };
 interface Edge { to: number; cost: number; contact: Contact }
 
 // A shared input group avoids building a quadratic graph for wide RTL operators.
@@ -134,13 +136,13 @@ export function criticalPath(design: Design, scope: Scope, delays: Map<string, n
       if (--pending[edge.to] === 0) queue.push(edge.to);
     }
   }
-  if (sinks.some(s => pending[s.bit])) return { message: '组合反馈影响终点，无法确定最长延迟' };
+  if (sinks.some(s => pending[s.bit])) return { message: message('feedbackPath') };
   let best: typeof sinks[number] | undefined;
   for (const sink of sinks) {
     if (!prev[sink.bit] || prev[sink.bit]?.contact.part === sink.contact.part && sink.contact.part.type === 'inout') continue;
     if (!best || arrival[sink.bit] > arrival[best.bit]) best = sink;
   }
-  if (!best) return { message: '当前层级没有可计时的数据路径' };
+  if (!best) return { message: message('noPath') };
   const links: PathLink[] = [];
   const label = (contact: Contact) => {
     const names = JSON.parse(contact.part.id) as string[];

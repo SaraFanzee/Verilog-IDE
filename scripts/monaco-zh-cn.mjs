@@ -1,5 +1,8 @@
 import { readFile } from 'node:fs/promises';
 import ts from 'typescript';
+import { fileURLToPath } from 'node:url';
+
+const localeImport = `import { startupLocale } from ${JSON.stringify(fileURLToPath(new URL('../src/i18n.ts', import.meta.url)))};`;
 
 export function monacoChinese() {
   return {
@@ -40,12 +43,12 @@ export function monacoChinese() {
         const contents = esm
           .replace(fallback, 'return _format(translations.get(message) ?? message, args);')
           .replace(original, 'message = translations.get(originalMessage) ?? originalMessage;');
-        return { contents: `const translations = new Map(${JSON.stringify([...translations])});\n${contents}`, loader: 'js' };
+        return { contents: `${localeImport}\nconst translations = new Map(startupLocale === 'en' ? [] : ${JSON.stringify([...translations])});\n${contents}`, loader: 'js' };
       });
       build.onLoad({ filter: /[\\/]monaco-editor[\\/]esm[\\/]vs[\\/]editor[\\/]contrib[\\/]inlineEdit[\\/]browser[\\/]commands\.js$/ }, async ({ path }) => {
         // This command's display label is hard-coded in Monaco 0.52.
         const source = await readFile(path, 'utf8');
-        return { contents: source.replace("label: 'Trigger Inline Edit'", "label: '触发内联编辑'"), loader: 'js' };
+        return { contents: localeImport + '\n' + source.replace("label: 'Trigger Inline Edit'", "label: startupLocale === 'en' ? 'Trigger Inline Edit' : '触发内联编辑'"), loader: 'js' };
       });
     },
   };

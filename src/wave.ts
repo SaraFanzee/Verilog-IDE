@@ -1,3 +1,4 @@
+import { t } from './i18n';
 import { formatValue, logicState, radixShort } from './design';
 import type { Radix, Signal, Vector } from './design';
 import type { Frame } from './sim-worker';
@@ -27,16 +28,16 @@ function gridStep(span: number, width: number) {
 export class Waveform {
   private data?: WaveData;
   private readonly spacer = document.createElement('div');
+  private readonly heading = document.createElement('div');
   private readonly list = document.createElement('div');
-  private readonly rows = new Map<string, { row: HTMLElement; value: HTMLElement; base: HTMLButtonElement }>();
+  private readonly rows = new Map<string, { row: HTMLElement; value: HTMLElement; base: HTMLButtonElement; remove: HTMLButtonElement; signal: Signal }>();
   constructor(private canvas: HTMLCanvasElement, private host: HTMLElement, onClick: (time: number, signal?: Signal, alternate?: boolean) => void,
     onZoom: (scale: number, anchor?: number) => void, private onRadix: (signal: Signal, x: number, y: number) => void,
     private remove: (signal: Signal) => void) {
     const surface = document.createElement('div');
     surface.className = 'wave-surface';
-    const heading = document.createElement('div');
+    const heading = this.heading;
     heading.className = 'watch-heading';
-    heading.textContent = '信号 / 当前值';
     heading.style.width = this.list.style.width = labelWidth + 'px';
     heading.style.height = this.list.style.top = axisHeight + 'px';
     this.list.className = 'watch-list';
@@ -69,8 +70,19 @@ export class Waveform {
       const signal = event.offsetY >= axisHeight ? this.signalAt(event.offsetY) : undefined;
       const changes = signal && this.data.frame?.waves[signal.id];
       const value = changes?.findLast(change => change.time <= time)?.value;
-      canvas.title = `${time * this.data.stepPs / 1000} ns${value && signal ? ' · ' + formatValue(value, this.data.radixFor(signal)) : ''}${signal?.editable && !signal.clock ? ' · 右键编辑输入' : ''}`;
+      canvas.title = `${time * this.data.stepPs / 1000} ns${value && signal ? ' · ' + formatValue(value, this.data.radixFor(signal)) : ''}${signal?.editable && !signal.clock ? ' · ' + t('rightClickInput') : ''}`;
     });
+  }
+
+  private labelRow({ base, remove, signal }: { base: HTMLButtonElement; remove: HTMLButtonElement; signal: Signal }) {
+    remove.title = t('removeSignal', { name: signal.name });
+    base.title = t('waveRadix', { name: signal.name });
+  }
+
+  refreshLanguage() {
+    this.heading.textContent = t('signalCurrentValue');
+    this.canvas.title = '';
+    for (const row of this.rows.values()) this.labelRow(row);
   }
 
   update(data: WaveData) {
@@ -102,16 +114,16 @@ export class Waveform {
         row.style.height = laneHeight + 'px';
         const remove = document.createElement('button');
         remove.className = 'watch-remove close-icon';
-        remove.title = '移除 ' + signal.name;
         const name = document.createElement('span');
         name.className = 'watch-name'; name.textContent = (signal.clock ? '◷ ' : '') + signal.name; name.title = signal.name;
         const value = document.createElement('span');
         value.className = 'watch-value';
         const base = document.createElement('button');
-        base.className = 'radix-chip'; base.title = signal.name + ' 的波形显示进制';
+        base.className = 'radix-chip';
         row.append(remove, name, value, base);
         this.list.append(row);
-        controls = { row, value, base };
+        controls = { row, value, base, remove, signal };
+        this.labelRow(controls);
         this.rows.set(signal.id, controls);
       }
       const { row, value, base } = controls;
@@ -205,7 +217,7 @@ export class Waveform {
     });
     if (!signals.length) {
       ctx.fillStyle = '#a3afbf';
-      ctx.fillText('从信号列表添加观察点。', labelWidth + 16, axisHeight + 20);
+      ctx.fillText(t('addWatches'), labelWidth + 16, axisHeight + 20);
     }
     ctx.restore();
     line(0, axisHeight, width, axisHeight, '#394758');

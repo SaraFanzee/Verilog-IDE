@@ -1,7 +1,11 @@
 const assert = require('node:assert/strict');
+const { mkdirSync, mkdtempSync } = require('node:fs');
 const { mkdir, readFile, writeFile } = require('node:fs/promises');
-const { basename } = require('node:path');
+const { basename, resolve } = require('node:path');
 const { app, BrowserWindow, ipcMain, Menu } = require('electron');
+const smokeData = resolve('.test-output');
+mkdirSync(smokeData, { recursive: true });
+app.setPath('userData', mkdtempSync(resolve(smokeData, 'electron-profile-')));
 const synthesisModes = [];
 const handle = ipcMain.handle;
 ipcMain.handle = function (channel, handler) {
@@ -33,6 +37,11 @@ app.whenReady().then(async () => {
   await webContents.debugger.sendCommand('Log.enable');
   if (webContents.isLoading()) await new Promise(resolve => webContents.once('did-finish-load', resolve));
   const evaluate = expression => webContents.executeJavaScript(expression);
+  const language = locale => evaluate(`(() => {
+    const select = document.getElementById('interface-language');
+    select.value = ${JSON.stringify(locale)};
+    select.dispatchEvent(new Event('change'));
+  })()`);
   const value = id => evaluate(`document.getElementById(${JSON.stringify(id)}).textContent`);
   const checkWires = async name => {
     const metrics = await evaluate(`(() => {
@@ -207,6 +216,11 @@ app.whenReady().then(async () => {
   await webContents.insertText('Q');
   const sampleRestored = "document.querySelector('.view-lines').textContent.includes('counter')";
   await wait("document.querySelector('.view-lines').textContent.trim() === 'Q'", 'editor select all');
+  await language('en');
+  assert.equal(await evaluate("document.querySelector('.view-lines').textContent.trim()"), 'Q');
+  assert.equal(await evaluate("document.querySelector('#tabs [data-dirty]').getAttribute('aria-label')"), 'counter.sv (unsaved)');
+  await language('zh-CN');
+  await evaluate("document.querySelector('.monaco-editor textarea').focus()");
   await key('z', ['control']); await wait(sampleRestored, 'editor undo');
   await key('y', ['control']); await wait('!' + sampleRestored, 'editor redo');
   await key('z', ['control']); await wait(sampleRestored, 'restore source');
@@ -289,6 +303,51 @@ app.whenReady().then(async () => {
   await wait('innerWidth <= 950', 'narrow window');
   assert(await evaluate(headersFit), 'editor buttons and centered module name at minimum window width');
   assert(await evaluate(sameRow));
+  const clippedButtons = `(() => {
+    const controls = [...document.querySelectorAll('.panel-header button, .transport button, .part-actions button, #log-toggle')]
+      .filter(button => button.getClientRects().length);
+    const outside = (inner, outer) => inner.left < outer.left - 1 || inner.right > outer.right + 1
+      || inner.top < outer.top - 1 || inner.bottom > outer.bottom + 1;
+    return controls.filter((button, index) => {
+      const rect = button.getBoundingClientRect();
+      const panel = button.closest('.panel, .transport').getBoundingClientRect();
+      const range = document.createRange();
+      range.selectNodeContents(button);
+      return outside(rect, panel) || [...range.getClientRects()].some(label => outside(label, rect))
+        || controls.slice(index + 1).some(other => {
+          const r = other.getBoundingClientRect();
+          return r.left < rect.right - 1 && r.right > rect.left + 1 && r.top < rect.bottom - 1 && r.bottom > rect.top + 1;
+        });
+    }).map(button => button.id);
+  })()`;
+  const setEditorSplit = fraction => evaluate(`document.getElementById('workspace').style.setProperty('--editor-width', '${fraction}%')`);
+  const diagramBeforeSwitch = await evaluate("window.schematicBeforeSwitch = document.querySelector('#schematic svg'); !!window.schematicBeforeSwitch");
+  assert(diagramBeforeSwitch);
+  await language('en');
+  assert.equal(await evaluate('document.documentElement.lang'), 'en');
+  assert.equal((await value('synthesize')).trim(), 'Synthesize');
+  assert.equal(await evaluate("document.getElementById('save').getAttribute('aria-label')"), 'Save');
+  assert.equal(await evaluate("document.querySelector('#schematic svg') === window.schematicBeforeSwitch"), true);
+  assert.equal(await value('play-label'), 'Run');
+  await click('play');
+  assert.equal(await value('play-label'), 'Pause');
+  await click('play');
+  await click('rewind');
+  await click('show-parts');
+  for (const fraction of [25, 4, 95]) {
+    await setEditorSplit(fraction);
+    assert.deepEqual(await evaluate(clippedButtons), [], `English buttons fit at editor split ${fraction}%`);
+  }
+  await setEditorSplit(4);
+  await evaluate("document.querySelector('#synthesize [data-i18n]').textContent = 'Synthesize the current design and verify timing'");
+  assert.deepEqual(await evaluate(clippedButtons), [], 'long button labels wrap inside the narrow editor');
+  await language('zh-CN');
+  for (const fraction of [4, 95]) {
+    await setEditorSplit(fraction);
+    assert.deepEqual(await evaluate(clippedButtons), [], `Chinese buttons fit at editor split ${fraction}%`);
+  }
+  await setEditorSplit(25);
+  await click('show-signals');
   window.setSize(initialWidth, initialHeight);
   await wait('innerWidth > 950', 'normal window');
   assert.equal(await evaluate("document.querySelector('#timing button')"), null);
@@ -660,6 +719,19 @@ app.whenReady().then(async () => {
   assert(await evaluate("[...document.querySelectorAll('.schematic-node.tribuf')].every(body => body.parentNode.querySelector('title').textContent.includes('$_TBUF_'))"));
   await checkSymbolBounds('tribuf');
   console.log('OK RTL and gate tri-state symbols have the same reference size; MUX title and shortened literal fit');
+  await language('en');
+  await new Promise(resolve => {
+    webContents.once('did-finish-load', resolve);
+    webContents.reload();
+  });
+  await wait("document.documentElement.lang === 'en' && document.getElementById('lint-status').textContent === 'Syntax OK'", 'English is restored after reload');
+  assert(await evaluate("document.getElementById('editor-language-note').hidden"));
+  const point = await evaluate("(() => {const r=document.querySelector('.view-lines .view-line').getBoundingClientRect(); return {x:Math.round(r.left+12),y:Math.round(r.top+r.height/2)};})()");
+  for (const type of ['mouseDown','mouseUp']) webContents.sendInputEvent({type, ...point, button:'right',clickCount:1});
+  await wait(editMenu, 'English editor context menu');
+  const englishActions = await evaluate(`[...${editMenu}.querySelectorAll('.action-label')].map(el => el.textContent.trim())`);
+  assert(englishActions.includes('Cut') && englishActions.includes('Undo') && englishActions.includes('Command Palette'));
+  console.log('OK bilingual workbench, narrow layouts, saved locale and English Monaco menu');
   clearTimeout(timeout);
   console.log('OK Electron UI: editor, live lint, synthesis, schematic input, stepping and historical edit');
   app.exit();

@@ -1,3 +1,5 @@
+import { t, translate } from './i18n';
+import type { Message } from './i18n';
 import type { ElkNode, ElkExtendedEdge } from 'elkjs/lib/elk-api';
 import { formatValue, logicState, radixShort } from './design';
 import type { Logic, Part, Radix, Scope, Signal } from './design';
@@ -43,7 +45,7 @@ interface Contact { part: Part; slot: Slot; point: Point }
 interface Trace { route: Route; contacts: Contact[] }
 function valueTitle(value: Logic[], radix: Radix) {
   const decimalUnknown = (radix === 'int' || radix === 'uint') && value.some(v => v === 'x' || v === 'z');
-  return formatValue(value, radix) + ' (' + radixShort[radix] + (decimalUnknown ? '，未知位以 BIN 展示' : '') + ')';
+  return formatValue(value, radix) + ' (' + radixShort[radix] + (decimalUnknown ? ', ' + t('showingBinary') : '') + ')';
 }
 
 function layoutNodes(parts: Part[], nets: WireNet[], portWidths: Map<string, number>) {
@@ -108,6 +110,7 @@ function layoutNodes(parts: Part[], nets: WireNet[], portWidths: Map<string, num
 }
 
 export class Schematic {
+  private layoutError?: Message | string;
   private drawing?: SVGSVGElement;
   private view = { width: 1, height: 1 };
   private layout?: Worker;
@@ -189,7 +192,8 @@ export class Schematic {
     this.layout?.terminate();
     const placeholder = document.createElement('div');
     placeholder.className = 'empty';
-    placeholder.textContent = '正在布局和布线…';
+    this.layoutError = undefined;
+    placeholder.textContent = t('layoutRunning');
     if (!keepDrawing) {
       this.host.replaceChildren(placeholder);
       this.drawing = undefined;
@@ -202,7 +206,12 @@ export class Schematic {
     const layout = new Worker('./layout-worker.js');
     this.layout = layout;
     const done = () => { layout.terminate(); this.layout = undefined; };
-    const fail = (error: string) => { done(); placeholder.textContent = '电路图布线失败：' + error; this.host.replaceChildren(placeholder); };
+    const fail = (error: Message | string) => {
+      done();
+      this.layoutError = error;
+      this.host.replaceChildren(placeholder);
+      this.refreshLanguage();
+    };
     layout.onerror = event => { if (this.layout === layout) fail(event.message); };
     layout.onmessage = ({ data }: MessageEvent<LayoutResult>) => {
       if (this.layout !== layout) return;
@@ -243,6 +252,21 @@ export class Schematic {
       this.setCriticalPath(this.critical);
     };
     layout.postMessage({ boxes: nodes.map(node => node.box), kinds: nodes.map(node => node.kind), nodes: elkNodes, edges, groups: ends } satisfies LayoutRequest);
+  }
+
+  private displayPartName(part: Part) {
+    return isAdapter(part) ? t(part.type === '@split' ? 'splitter' : 'joiner') : part.name;
+  }
+
+  refreshLanguage() {
+    if (this.current) {
+      const placeholder = this.host.querySelector('.empty');
+      if (placeholder) placeholder.textContent = this.layoutError
+        ? t('routingFailed', { error: translate(this.layoutError) }) : t('layoutRunning');
+    }
+    for (const { shape, part } of this.groups) {
+      if (isAdapter(part)) shape.querySelector('title')!.textContent = `${this.displayPartName(part)}\n${part.type}`;
+    }
   }
 
   private drawWire(drawing: SVGSVGElement, labels: SVGGElement, route: Route, net: WireNet) {
@@ -304,7 +328,7 @@ export class Schematic {
       });
     }
     const title = svg('title');
-    title.textContent = signal ? `${part.name} · ${signal.width} bit` : `${part.name}\n${part.type}`;
+    title.textContent = signal ? `${part.name} · ${signal.width} bit` : `${this.displayPartName(part)}\n${part.type}`;
     const gate = gateKinds.has(kind);
     // Keep terminals on the integer routing grid; scale the artwork exactly.
     const sx = gate ? 1.5 : kind === 'mux' ? .75 : 1;

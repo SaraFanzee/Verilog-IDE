@@ -7,7 +7,7 @@ import { createReadStream } from 'node:fs';
 import { execFile } from 'node:child_process';
 import { archiveLinux } from './linux-archive.mjs';
 import { copyLibraries } from './windows-libraries.mjs';
-import { releaseNotes, writeReleaseNotes } from './release-notes.mjs';
+import { readReleaseNotes, writeReleaseNotes } from './release-notes.mjs';
 
 const { values } = parseArgs({ options: {
   platform: { type: 'string', default: process.platform },
@@ -22,7 +22,7 @@ if (!crossArchive && !values.toolchain) throw new Error('Pass --toolchain <OSS C
 if (!crossArchive && platform === 'linux' && process.platform !== 'linux') throw new Error('Pass --toolchain-archive when building the Linux archive from Windows.');
 const require = createRequire(import.meta.url);
 const version = require('../package.json').version;
-const notes = releaseNotes(await readFile('CHANGELOG.md', 'utf8'), version);
+const notes = await readReleaseNotes(version);
 const electronVersion = require('electron/package.json').version;
 const filename = `electron-v${electronVersion}-${platform}-x64.zip`;
 const solution = resolve(values.toolchain ?? '.');
@@ -62,6 +62,8 @@ await mkdir(app);
 await cp('dist', join(app, 'dist'), { recursive: true });
 await cp('package.json', join(app, 'package.json'));
 await cp('README.md', join(output, 'README.md'));
+await cp('README.en.md', join(output, 'README.en.md'));
+await cp('CHANGELOG.en.md', join(output, 'CHANGELOG.en.md'));
 await cp('LICENSE', join(output, 'LICENSE'));
 await writeFile(join(output, 'CHANGELOG.md'), notes);
 

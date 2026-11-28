@@ -1,15 +1,20 @@
 # Verilog IDE
 
+[English](README.en.md) · 简体中文
+
 <img width="2560" height="1344" alt="总览" src="https://github.com/user-attachments/assets/7774a997-2078-446f-b011-c9329b8773a5" />
 
 
 使用 Electron、Monaco、Yosys 和 slang 的 Verilog/SystemVerilog 桌面工作台。应用内置四态网表仿真器，打开后可直接综合自带的计数器与三态总线示例。
 
-版本改动见[更新日志](CHANGELOG.md)。
+版本改动见[更新日志](CHANGELOG.md)或[英文更新日志](CHANGELOG.en.md)。
 
 ## 使用
 
 1. 解压适合当前系统的发行包。Windows 运行 `Verilog IDE.exe`，Linux x64 运行 `./verilog-ide`。
+
+   标题栏右侧可在「简体中文」与「English」之间切换。工作台即时更新并保存语言偏好。Monaco 的内置菜单和命令面板在下次启动时应用所选语言。
+
 2. 启动时源码编辑器占满视图。新建、打开和保存源码的图标位于编辑器标题栏中。点击右侧的「综合」后编辑器占左侧四分之一，右侧显示电路和波形。拖动分界线可调整宽度，小三角可在隐藏、四分之一和全宽之间切换。直接综合示例，或打开自己的 `.v`、`.sv` 和头文件。实时语法检查和综合都会读取编辑器当前内容。首次综合默认生成「RTL行为级」电路图。在电路图标题栏切换到「门级」或切回「RTL行为级」时，应用按当前源码和设置重新生成所选层级。「综合」右侧的下拉按钮可打开综合设置。悬停在选项上可查看对应命令，也可逐行填写补充 Yosys 命令，在最终导出网表前执行。诊断与日志列出实际执行的脚本。综合设置可选择语言标准、顶层、参数、宏、包含目录、层级、优化及观察点保留。
 <img width="767" height="402" alt="综合" src="https://github.com/user-attachments/assets/cc5883a6-e8aa-4346-a497-161d0a5da853" />
 
@@ -49,7 +54,7 @@
 
 ## 构建和验证
 
-每次发行前，在项目根目录的 `CHANGELOG.md` 顶部以 `## v版本号` 新增一节，按用户可见的变化记录本次实际改动。打包脚本按 `package.json` 的版本号提取该节，写入 Windows 和 Linux 发行包根目录的 `CHANGELOG.md`，并在压缩包旁生成独立的 `Verilog-IDE-版本号-更新日志.md`。同一版本的两个平台共用一份日志。可运行 `npm run release:notes` 单独生成当前版本的日志。
+每次发行前，在 `CHANGELOG.md` 和 `CHANGELOG.en.md` 中用同一个 `## v版本号` 标题记录用户可见的变化。打包脚本按 `package.json` 的版本提取两种语言，将双语日志写入 Windows 和 Linux 发行包根目录的 `CHANGELOG.md`。可运行 `npm run release:notes` 单独生成 `release/Verilog-IDE-版本号-更新日志.md`，并将该文件的内容用作 GitHub Release 正文。
 
 开发环境使用 Node.js 22 或更新版本。安装与目标系统匹配的 [OSS CAD Suite](https://github.com/YosysHQ/oss-cad-suite-build/releases)，确保包含带 `read_slang` 的 Yosys、独立的 slang 和 ABC。可将工具添加到 `PATH`，或设置 `VERILOG_IDE_TOOLCHAIN` 指向套件根目录。
 

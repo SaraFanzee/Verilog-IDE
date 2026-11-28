@@ -10,145 +10,151 @@
 <body>
   <header class="appbar">
     <div class="brand"><span class="brand-mark" aria-hidden="true">▱</span>Verilog IDE</div>
+    <div class="spacer"></div>
+    <p id="editor-language-note" data-i18n="editorLanguageOnRestart" hidden></p>
+    <select id="interface-language" data-i18n-aria-label="language" data-i18n-title="language" aria-describedby="editor-language-note">
+      <option value="zh-CN" lang="zh-CN">简体中文</option>
+      <option value="en" lang="en">English</option>
+    </select>
   </header>
   <main>
     <section id="workspace" class="workspace" data-editor="full">
-      <section class="editor-panel panel" aria-label="HDL 编辑器">
-        <div class="panel-header"><h2>源码编辑器</h2>
-          <div class="file-actions" role="group" aria-label="源码文件">
-            <button id="new" class="file-icon" title="新建" aria-label="新建"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3h9l5 5v13H5z M14 3v6h5 M9 14h6 M12 11v6"/></svg></button>
-            <button id="open" class="file-icon" title="打开" aria-label="打开"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 18V5h6l2 2h8v3 M3 19l3-9h16l-3 9z"/></svg></button>
-            <button id="save" class="file-icon" title="保存" aria-label="保存"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 3h13l3 3v15H4z M8 3v6h8V3 M8 21v-8h8v8"/></svg></button>
+      <section class="editor-panel panel" data-i18n-aria-label="editorA11y">
+        <div class="panel-header"><h2 data-i18n="editor"></h2>
+          <div class="file-actions" role="group" data-i18n-aria-label="sourceFiles">
+            <button id="new" class="file-icon" data-i18n-title="new" data-i18n-aria-label="new"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3h9l5 5v13H5z M14 3v6h5 M9 14h6 M12 11v6"/></svg></button>
+            <button id="open" class="file-icon" data-i18n-title="open" data-i18n-aria-label="open"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 18V5h6l2 2h8v3 M3 19l3-9h16l-3 9z"/></svg></button>
+            <button id="save" class="file-icon" data-i18n-title="save" data-i18n-aria-label="save"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 3h13l3 3v15H4z M8 3v6h8V3 M8 21v-8h8v8"/></svg></button>
           </div>
           <span id="lint-status"></span>
-          <div class="synth-actions"><button id="synthesize" class="primary icon-button"><svg class="button-icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M5 3l8 5-8 5z"/></svg>综合</button><button id="settings" class="primary icon-button" aria-label="综合设置" title="综合设置" aria-haspopup="dialog"><svg class="button-icon filled-icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 5h12l-6 6z"/></svg></button></div>
+          <div class="synth-actions"><button id="synthesize" class="primary icon-button"><svg class="button-icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M5 3l8 5-8 5z"/></svg><span data-i18n="synthesize"></span></button><button id="settings" class="primary icon-button" data-i18n-aria-label="synthSettings" data-i18n-title="synthSettings" aria-haspopup="dialog"><svg class="button-icon filled-icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 5h12l-6 6z"/></svg></button></div>
         </div>
         <div id="tabs" class="tabs" role="tablist"></div>
         <div id="editor"></div>
         <div class="diagnostic">
-          <button id="log-toggle" aria-expanded="false">诊断与日志 <span id="problem-count"></span></button>
+          <button id="log-toggle" aria-expanded="false"><span data-i18n="diagnostics"></span> <span id="problem-count"></span></button>
           <div id="log-pane" hidden><div id="diagnostics"></div><pre id="log"></pre></div>
         </div>
       </section>
-      <div class="splitter vertical" id="editor-split"><div class="split-actions"><button id="editor-less" aria-label="缩小源码编辑器" title="缩小源码编辑器">◀</button><button id="editor-more" aria-label="展开源码编辑器" title="展开源码编辑器">▶</button></div></div>
+      <div class="splitter vertical" id="editor-split"><div class="split-actions"><button id="editor-less" data-i18n-aria-label="editorLess" data-i18n-title="editorLess">◀</button><button id="editor-more" data-i18n-aria-label="editorMore" data-i18n-title="editorMore">▶</button></div></div>
       <div class="results">
-  <section class="transport" aria-label="仿真控制">
+  <section class="transport" data-i18n-aria-label="simulationControls">
     <form id="timing">
-      <label>仿真间隔<input id="step-size" type="number" min="1" max="1000000" value="50" required><span>ps</span></label>
-      <label>时钟周期<input id="period" type="number" min="0.002" step="0.001" max="10000000" value="1" required><span>ns</span></label>
-      <label>结束时间<input id="end" type="number" min="0.001" step="0.001" max="1000000000" value="100" required><span>ns</span></label>
+      <label><span data-i18n="timeStep"></span><input id="step-size" type="number" min="1" max="1000000" value="50" required><span>ps</span></label>
+      <label><span data-i18n="clockPeriod"></span><input id="period" type="number" min="0.002" step="0.001" max="10000000" value="1" required><span>ns</span></label>
+      <label><span data-i18n="endTime"></span><input id="end" type="number" min="0.001" step="0.001" max="1000000000" value="100" required><span>ns</span></label>
     </form>
     <div class="playback">
       <div class="transport-buttons">
-        <button id="rewind" class="icon-button" title="回到 0 ns，保留激励" aria-label="回到零"><svg class="button-icon filled-icon" viewBox="0 0 16 16" aria-hidden="true"><rect x="3" y="3" width="10" height="10"/></svg></button>
-        <button id="step" class="icon-button" title="前进一个仿真间隔" aria-label="单步"><svg class="button-icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 4l5 4-5 4 M12 4v8"/></svg></button>
-        <button id="cycle" class="icon-button" title="前进一个时钟周期" aria-label="整周期"><svg class="button-icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 4l5 4-5 4 M10 4v8 M14 4v8"/></svg></button>
-        <button id="play" class="run"><svg viewBox="0 0 16 16" aria-hidden="true"><path class="play-icon" d="M3 1.5 14 8 3 14.5Z"/><g class="pause-icon"><rect x="3" y="2" width="3.5" height="12"/><rect x="9.5" y="2" width="3.5" height="12"/></g></svg><span id="play-label">运行</span></button>
+        <button id="rewind" class="icon-button" data-i18n-title="rewindHint" data-i18n-aria-label="rewind"><svg class="button-icon filled-icon" viewBox="0 0 16 16" aria-hidden="true"><rect x="3" y="3" width="10" height="10"/></svg></button>
+        <button id="step" class="icon-button" data-i18n-title="stepHint" data-i18n-aria-label="step"><svg class="button-icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 4l5 4-5 4 M12 4v8"/></svg></button>
+        <button id="cycle" class="icon-button" data-i18n-title="cycleHint" data-i18n-aria-label="cycle"><svg class="button-icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 4l5 4-5 4 M10 4v8 M14 4v8"/></svg></button>
+        <button id="play" class="run"><svg viewBox="0 0 16 16" aria-hidden="true"><path class="play-icon" d="M3 1.5 14 8 3 14.5Z"/><g class="pause-icon"><rect x="3" y="2" width="3.5" height="12"/><rect x="9.5" y="2" width="3.5" height="12"/></g></svg><span id="play-label" data-i18n="run"></span></button>
       </div>
-      <label class="speed">速度<input type="range" id="speed" min="1" max="100" value="10"><output id="speed-label">10 ns/s</output></label>
-      <output id="time-readout" aria-label="当前时间 / 总时间">0 / 100 ns</output>
+      <label class="speed"><span data-i18n="speed"></span><input type="range" id="speed" min="1" max="100" value="10"><output id="speed-label">10 ns/s</output></label>
+      <output id="time-readout" data-i18n-aria-label="timeReadout">0 / 100 ns</output>
     </div>
   </section>
       <div class="diagram-row">
-      <section class="diagram-panel panel" aria-label="综合电路图">
+      <section class="diagram-panel panel" data-i18n-aria-label="synthSchematic">
         <div class="panel-header">
           <div class="diagram-heading">
-            <h2>电路图</h2>
-            <div class="mode-tabs" role="tablist" aria-label="综合层级">
-              <button id="mode-rtl" role="tab" aria-controls="schematic" aria-selected="true">RTL行为级</button>
-              <button id="mode-gate" role="tab" aria-controls="schematic" aria-selected="false" tabindex="-1">门级</button>
+            <h2 data-i18n="schematic"></h2>
+            <div class="mode-tabs" role="tablist" data-i18n-aria-label="synthLevel">
+              <button id="mode-rtl" role="tab" aria-controls="schematic" aria-selected="true" data-i18n="rtl"></button>
+              <button id="mode-gate" role="tab" aria-controls="schematic" aria-selected="false" tabindex="-1" data-i18n="gate"></button>
             </div>
           </div>
           <div id="scope-path"></div>
           <div class="diagram-actions">
-            <button id="critical-path" class="toggle-button" aria-pressed="false" disabled>关键路径</button>
-            <button id="diagram-out" class="icon-button" title="缩小电路图" aria-label="缩小电路图"><svg class="button-icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h10"/></svg></button>
-            <button id="diagram-fit" class="fit-view" title="适配电路图窗口" aria-label="适配电路图窗口"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 6V3h3 M10 3h3v3 M13 10v3h-3 M6 13H3v-3"/></svg></button>
-            <button id="diagram-in" class="icon-button" title="放大电路图" aria-label="放大电路图"><svg class="button-icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h10M8 3v10"/></svg></button>
-            <button id="colors" class="palette-icon" title="配色" aria-label="配色"><img src="color-disc-icon.png" alt=""></button>
+            <button id="critical-path" class="toggle-button" aria-pressed="false" disabled data-i18n="criticalPath"></button>
+            <button id="diagram-out" class="icon-button" data-i18n-title="diagramOut" data-i18n-aria-label="diagramOut"><svg class="button-icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h10"/></svg></button>
+            <button id="diagram-fit" class="fit-view" data-i18n-title="diagramFit" data-i18n-aria-label="diagramFit"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 6V3h3 M10 3h3v3 M13 10v3h-3 M6 13H3v-3"/></svg></button>
+            <button id="diagram-in" class="icon-button" data-i18n-title="diagramIn" data-i18n-aria-label="diagramIn"><svg class="button-icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h10M8 3v10"/></svg></button>
+            <button id="colors" class="palette-icon" data-i18n-title="colors" data-i18n-aria-label="colors"><img src="color-disc-icon.png" alt=""></button>
           </div>
         </div>
-        <div id="schematic" role="tabpanel" aria-labelledby="mode-rtl"><div class="empty">&nbsp;综合源码后，电路图将显示在这里。</div></div>
-        <div class="diagram-legend"><div id="legend" aria-label="逻辑状态颜色"></div><output id="critical-delay" hidden></output></div>
+        <div id="schematic" role="tabpanel" aria-labelledby="mode-rtl"><div class="empty" data-i18n="emptySchematic"></div></div>
+        <div class="diagram-legend"><div id="legend" data-i18n-aria-label="logicColors"></div><output id="critical-delay" hidden></output></div>
       </section>
       <div class="splitter vertical" id="inspect-split" aria-hidden="true"></div>
-      <aside class="inspector panel" aria-label="信号与元件">
+      <aside class="inspector panel" data-i18n-aria-label="inspector">
         <div class="panel-header with-tabs">
-          <button class="selected" id="show-signals">声明信号</button><button id="show-parts">元件清单</button>
+          <button class="selected" id="show-signals" data-i18n="signals"></button><button id="show-parts" data-i18n="parts"></button>
           <span class="spacer"></span><span id="inspector-count"></span>
         </div>
         <div id="signal-pane">
-          <input id="signal-filter" type="search" placeholder="搜索信号" aria-label="搜索信号">
+          <input id="signal-filter" type="search" data-i18n-placeholder="findSignals" data-i18n-aria-label="findSignals">
           <ul id="signals"></ul>
         </div>
         <div id="part-pane" hidden>
           <div class="part-columns">
-            <span>类型 · 数量</span><span class="part-delay-heading">延迟/间隔</span>
-            <div class="part-actions"><button id="zero-delays" title="延迟全部清零">清零</button><button id="reset-delays" title="恢复默认延迟">默认</button></div>
+            <span data-i18n="typeCount"></span><span class="part-delay-heading" data-i18n="delaySteps"></span>
+            <div class="part-actions"><button id="zero-delays" data-i18n-title="zeroAll" data-i18n="zero"></button><button id="reset-delays" data-i18n-title="resetAll" data-i18n="defaults"></button></div>
           </div>
           <ul id="parts"></ul>
         </div>
       </aside>
       </div>
     <div class="splitter horizontal" id="wave-split" aria-hidden="true"></div>
-    <section class="wave-panel panel" aria-label="波形">
+    <section class="wave-panel panel" data-i18n-aria-label="waveform">
       <div class="panel-header">
-        <h2>波形</h2><span id="preview"></span><div class="spacer"></div>
-        <button id="follow" class="toggle-button" aria-pressed="true">跟随光标</button>
-        <label>默认编辑范围 <select id="duration"><option value="step">仿真间隔</option><option value="period" selected>所在周期</option><option value="end">至结束</option></select></label>
+        <h2 data-i18n="waveform"></h2><span id="preview"></span><div class="spacer"></div>
+        <button id="follow" class="toggle-button" aria-pressed="true" data-i18n="follow"></button>
+        <label><span data-i18n="defaultRange"></span> <select id="duration"><option value="step" data-i18n="timeStep"></option><option value="period" selected data-i18n="withinCycle"></option><option value="end" data-i18n="untilEnd"></option></select></label>
         <div class="wave-actions">
-          <button id="wave-out" class="icon-button" title="缩小时间轴" aria-label="缩小时间轴"><svg class="button-icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h10"/></svg></button>
-          <button id="wave-fit" class="fit-view" title="显示全程波形" aria-label="显示全程波形"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 6V3h3 M10 3h3v3 M13 10v3h-3 M6 13H3v-3"/></svg></button>
-          <button id="wave-in" class="icon-button" title="放大时间轴" aria-label="放大时间轴"><svg class="button-icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h10M8 3v10"/></svg></button>
+          <button id="wave-out" class="icon-button" data-i18n-title="waveOut" data-i18n-aria-label="waveOut"><svg class="button-icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h10"/></svg></button>
+          <button id="wave-fit" class="fit-view" data-i18n-title="waveFit" data-i18n-aria-label="waveFit"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 6V3h3 M10 3h3v3 M13 10v3h-3 M6 13H3v-3"/></svg></button>
+          <button id="wave-in" class="icon-button" data-i18n-title="waveIn" data-i18n-aria-label="waveIn"><svg class="button-icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h10M8 3v10"/></svg></button>
         </div>
       </div>
-      <div id="wave-scroll"><canvas id="wave" aria-label="信号波形。点击时间刻度移动光标，单击输入电平切换，右键设置 X、Z 或总线值。" tabindex="0"></canvas></div>
-      <div class="wave-nav"><span>时间窗</span><div id="wave-range"><div id="range-window" tabindex="0" role="slider" aria-label="平移时间窗"><button id="range-start" role="slider" aria-label="时间窗起点"></button><button id="range-end" role="slider" aria-label="时间窗终点"></button></div></div><span id="range-label"></span></div>
+      <div id="wave-scroll"><canvas id="wave" data-i18n-aria-label="waveA11y" tabindex="0"></canvas></div>
+      <div class="wave-nav"><span data-i18n="timeWindow"></span><div id="wave-range"><div id="range-window" tabindex="0" role="slider" data-i18n-aria-label="panWindow"><button id="range-start" role="slider" data-i18n-aria-label="windowStart"></button><button id="range-end" role="slider" data-i18n-aria-label="windowEnd"></button></div></div><span id="range-label"></span></div>
     </section>
     </div>
     </section>
   </main>
-  <footer><span id="status" role="status">就绪</span><div class="spacer"></div><span id="net-status">未综合</span></footer>
+  <footer><span id="status" role="status" data-i18n="ready"></span><div class="spacer"></div><span id="net-status" data-i18n="unsynthesized"></span></footer>
   <div id="signal-menu" class="signal-menu" role="menu" hidden></div>
   <dialog id="settings-dialog">
     <form method="dialog" id="settings-form">
-      <h2>综合与检查设置</h2>
+      <h2 data-i18n="synthAndLint"></h2>
       <div class="dialog-grid">
-        <label>语言标准<select id="standard"><option value="1800-2023">SystemVerilog 2023</option><option value="1800-2017">SystemVerilog 2017</option><option value="1364-2005">Verilog 2005</option></select></label>
-        <label>顶层模块<input id="top" placeholder="留空自动识别" pattern="[a-zA-Z0-9_$]+"></label>
+        <label><span data-i18n="languageStandard"></span><select id="standard"><option value="1800-2023">SystemVerilog 2023</option><option value="1800-2017">SystemVerilog 2017</option><option value="1364-2005">Verilog 2005</option></select></label>
+        <label><span data-i18n="topModule"></span><input id="top" data-i18n-placeholder="autoTop" pattern="[a-zA-Z0-9_$]+"></label>
       </div>
       <div class="check-grid">
-        <label><input id="hierarchy" type="checkbox" checked> 尽量保留模块层级</label>
-        <label><input id="optimize" type="checkbox" checked> RTL 优化</label>
-        <label><input id="observe" type="checkbox" checked> 尽量保留内部观察点</label>
-        <label><input id="abc" type="checkbox"> 门级启用 ABC 映射</label>
-        <label><input id="live-lint" type="checkbox" checked> 实时语法检查</label>
+        <label><input id="hierarchy" type="checkbox" checked> <span data-i18n="preserveHierarchy"></span></label>
+        <label><input id="optimize" type="checkbox" checked> <span data-i18n="rtlOptimization"></span></label>
+        <label><input id="observe" type="checkbox" checked> <span data-i18n="preserveProbes"></span></label>
+        <label><input id="abc" type="checkbox"> <span data-i18n="abcMapping"></span></label>
+        <label><input id="live-lint" type="checkbox" checked> <span data-i18n="liveLint"></span></label>
       </div>
-      <label>包含目录 <button type="button" id="add-include">浏览</button><textarea id="includes" rows="2" placeholder="每行一个目录"></textarea></label>
-      <label>宏定义<textarea id="defines" rows="2" placeholder="每行一个，例如 ENABLE 或 WIDTH=8"></textarea></label>
-      <label>顶层参数覆盖<textarea id="parameters" rows="2" placeholder="每行一个，例如 WIDTH=8"></textarea></label>
-      <label title="在导出 design.json 之前执行，每行一条 Yosys 命令。">补充 Yosys 命令<textarea id="extra-commands" rows="2" spellcheck="false" placeholder="例如 opt_clean -purge"></textarea></label>
-      <div class="dialog-actions"><button value="cancel" formnovalidate>取消</button><button value="apply" class="primary">应用</button></div>
+      <label><span data-i18n="includeDirs"></span> <button type="button" id="add-include" data-i18n="browse"></button><textarea id="includes" rows="2" data-i18n-placeholder="directoryPerLine"></textarea></label>
+      <label><span data-i18n="macros"></span><textarea id="defines" rows="2" data-i18n-placeholder="macroExample"></textarea></label>
+      <label><span data-i18n="parameterOverrides"></span><textarea id="parameters" rows="2" data-i18n-placeholder="parameterExample"></textarea></label>
+      <label data-i18n-title="extraYosysHint"><span data-i18n="extraYosys"></span><textarea id="extra-commands" rows="2" spellcheck="false" data-i18n-placeholder="extraYosysExample"></textarea></label>
+      <div class="dialog-actions"><button value="cancel" formnovalidate data-i18n="cancel"></button><button value="apply" class="primary" data-i18n="apply"></button></div>
     </form>
   </dialog>
   <dialog id="color-dialog"><form method="dialog">
-    <h2>电路图配色</h2><div id="color-controls" class="dialog-grid"></div>
-    <div class="dialog-actions"><button value="close" class="primary">完成</button></div>
+    <h2 data-i18n="schematicColors"></h2><div id="color-controls" class="dialog-grid"></div>
+    <div class="dialog-actions"><button value="close" class="primary" data-i18n="done"></button></div>
   </form></dialog>
   <dialog id="value-dialog">
     <form id="value-form">
-      <h2 id="value-title">输入激励</h2><p id="value-time"></p>
-      <div class="dialog-grid"><label>进制<select id="value-radix"><option value="bin">二进制</option><option value="hex">十六进制</option><option value="uint">无符号十进制</option><option value="int">有符号十进制</option></select></label>
-      <label>数值<input id="value-input" spellcheck="false" required></label></div>
-      <label id="value-duration-label">生效范围<select id="value-duration"><option value="step">仿真间隔</option><option value="period">所在周期</option><option value="end">至结束</option></select></label>
+      <h2 id="value-title" data-i18n="stimulus"></h2><p id="value-time"></p>
+      <div class="dialog-grid"><label><span data-i18n="radix"></span><select id="value-radix"><option value="bin" data-i18n="binary"></option><option value="hex" data-i18n="hex"></option><option value="uint" data-i18n="unsigned"></option><option value="int" data-i18n="signed"></option></select></label>
+      <label><span data-i18n="value"></span><input id="value-input" spellcheck="false" required></label></div>
+      <label id="value-duration-label"><span data-i18n="effectiveRange"></span><select id="value-duration"><option value="step" data-i18n="timeStep"></option><option value="period" data-i18n="withinCycle"></option><option value="end" data-i18n="untilEnd"></option></select></label>
       <p id="value-error" class="error" role="alert"></p>
-      <div class="dialog-actions"><button type="button" id="value-cancel">取消</button><button type="submit" class="primary">应用</button></div>
+      <div class="dialog-actions"><button type="button" id="value-cancel" data-i18n="cancel"></button><button type="submit" class="primary" data-i18n="apply"></button></div>
     </form>
   </dialog>
   <dialog id="clock-dialog"><form id="clock-form">
-    <h2 id="clock-title">时钟输入</h2><label>独立时钟周期（ns）<input id="clock-period" type="number" min="0.002" step="0.001" placeholder="留空使用顶部时钟周期"></label>
+    <h2 id="clock-title" data-i18n="clockInput"></h2><label><span data-i18n="independentClock"></span><input id="clock-period" type="number" min="0.002" step="0.001" data-i18n-placeholder="useGlobalClock"></label>
     <p id="clock-error" class="error"></p>
-    <div class="dialog-actions"><button type="button" id="clock-cancel">取消</button><button type="submit" class="primary">应用</button></div>
+    <div class="dialog-actions"><button type="button" id="clock-cancel" data-i18n="cancel"></button><button type="submit" class="primary" data-i18n="apply"></button></div>
   </form></dialog>
   <script src="renderer.js"></script>
 </body>

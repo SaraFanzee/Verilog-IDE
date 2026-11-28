@@ -1,3 +1,4 @@
+import { LocalizedError, message } from './i18n';
 import type { Bit, Cell, Direction, Netlist } from './protocol';
 
 export type Logic = '0' | '1' | 'x' | 'z';
@@ -66,7 +67,7 @@ export function compile(netlist: Netlist, top: string, source?: Netlist): Design
     return bit;
   }
   function visit(moduleName: string, path: string[], ancestry: string[], bindings: Record<string, Bit[]> = {}) {
-    if (ancestry.includes(moduleName)) throw new Error(`检测到递归模块 ${moduleName}。`);
+    if (ancestry.includes(moduleName)) throw new LocalizedError(message('recursiveModule', { name: moduleName }));
     const mod = netlist.modules[moduleName];
     const scope: Scope = { id: signalId(path), label: path.join(' / '), parts: [], signalIds: [] };
     scopes.push(scope);
@@ -171,22 +172,22 @@ export function parseValue(text: string, width: number, radix: Radix): Vector {
   if (/^[xz]$/.test(value)) return Array<Logic>(width).fill(value as Logic);
   if (radix === 'bin') {
     value = value.replace(/^0b/, '');
-    if (!/^[01xz]+$/.test(value)) throw new Error('请输入有效的二进制值，可包含 X 或 Z。');
+    if (!/^[01xz]+$/.test(value)) throw new LocalizedError(message('invalidBinary'));
     bits = value;
   } else if (radix === 'hex') {
     value = value.replace(/^0x(?=.)/, '');
-    if (!/^[0-9a-fxz]+$/.test(value)) throw new Error('请输入有效的十六进制值，可包含 X 或 Z。');
+    if (!/^[0-9a-fxz]+$/.test(value)) throw new LocalizedError(message('invalidHex'));
     bits = [...value].map(digit => /[xz]/.test(digit) ? digit.repeat(4) : parseInt(digit, 16).toString(2).padStart(4, '0')).join('');
     const excess = bits.slice(0, Math.max(0, bits.length - width));
     if (/^0*$/.test(excess) || (/^[xz]+$/.test(excess) && [...excess].every(bit => bit === bits.at(-width)))) bits = bits.slice(-width);
   } else {
-    if (!/^-?\d+$/.test(value)) throw new Error('请输入十进制整数。');
+    if (!/^-?\d+$/.test(value)) throw new LocalizedError(message('invalidDecimal'));
     const number = BigInt(value);
     const bound = 1n << BigInt(radix === 'int' ? width - 1 : width);
-    if (number < (radix === 'int' ? -bound : 0n) || number >= bound) throw new Error(`数值超出 ${width} 位范围。`);
+    if (number < (radix === 'int' ? -bound : 0n) || number >= bound) throw new LocalizedError(message('valueOutOfRange', { width }));
     bits = BigInt.asUintN(width, number).toString(2);
   }
-  if (bits.length > width) throw new Error(`数值超出 ${width} 位范围。`);
+  if (bits.length > width) throw new LocalizedError(message('valueOutOfRange', { width }));
   return [...bits.padStart(width, '0')].reverse() as Vector;
 }
 

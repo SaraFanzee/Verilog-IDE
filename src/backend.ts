@@ -1,3 +1,4 @@
+import { errorMessage, LocalizedError, message } from './i18n';
 import { spawn } from 'node:child_process';
 import { existsSync } from 'node:fs';
 import { mkdtemp, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
@@ -11,13 +12,13 @@ function run(executable: string, args: string[], cwd: string, environment: NodeJ
     let log = '';
     const timeout = setTimeout(() => {
       child.kill();
-      reject(new Error('HDL 工具超过 45 秒，已终止。'));
+      reject(new LocalizedError(message('toolTimeout')));
     }, 45_000);
     const receive = (data: string) => {
       log += data;
       if (log.length > 2_000_000) {
         child.kill();
-        reject(new Error('HDL 工具输出超过 2 MB，已终止。'));
+        reject(new LocalizedError(message('toolOutputLimit')));
       }
     };
     child.stdout.setEncoding('utf8').on('data', receive);
@@ -30,14 +31,14 @@ function run(executable: string, args: string[], cwd: string, environment: NodeJ
 // Slang expands a command file with its own argument parser. This keeps paths
 // containing spaces out of the Yosys command parser.
 function quote(value: string) {
-  if (/[";\r\n\0\\]/.test(value)) throw new Error('综合选项含不支持的字符。');
+  if (/[";\r\n\0\\]/.test(value)) throw new LocalizedError(message('invalidOption'));
   return `"${value}"`;
 }
 
 function buildScript(options: BuildOptions, files: string[], includes: string[], lint: boolean) {
   const { standard, top, mode, hierarchy, optimize, abc, observe, defines, parameters } = options;
-  if (!['1364-2005', '1800-2017', '1800-2023'].includes(standard)) throw new Error('不支持的语言版本。');
-  if (top && !/^[\w$]+$/.test(top)) throw new Error('顶层模块需为常规 HDL 标识符。');
+  if (!['1364-2005', '1800-2017', '1800-2023'].includes(standard)) throw new LocalizedError(message('invalidStandard'));
+  if (top && !/^[\w$]+$/.test(top)) throw new LocalizedError(message('invalidTop'));
   const read = ['--std', standard];
   if (lint) read.push('--lint-only');
   if (top && !lint) read.push('--top', top);
@@ -108,7 +109,7 @@ export async function hdlJob(sources: Source[], options: BuildOptions, lint: boo
     for (const [index, source] of sources.entries()) {
       const relative = (source.path ? overlayPath(source.path) : join('scratch', basename(source.name)))
         .replaceAll('\\', '/');
-      if (files.has(relative)) throw new Error(`文件名重复：${source.name}`);
+      if (files.has(relative)) throw new LocalizedError(message('duplicateFile', { name: source.name }));
       const path = join(workspace, relative);
       await mkdir(dirname(path), { recursive: true });
       await writeFile(path, source.text, 'utf8');
@@ -116,25 +117,27 @@ export async function hdlJob(sources: Source[], options: BuildOptions, lint: boo
       if (source.path) {
         files.set(source.path.replaceAll('\\', '/'), source);
         includes.add(dirname(source.path));
-      } else if (!source.name) throw new Error(`文件 ${index + 1} 缺少名称。`);
+      } else if (!source.name) throw new LocalizedError(message('missingFileName', { index: index + 1 }));
       if (!/\.(svh|vh)$/i.test(source.name)) inputs.push(relative);
     }
-    if (!inputs.length) return { ok: false, log: '请打开或新建 HDL 源文件。', diagnostics: [] };
+    if (!inputs.length) return { ok: false, log: '', logMessage: message('noInputs'), diagnostics: [] };
     const { args, script } = buildScript(options, inputs, [...includes], lint);
     await writeFile(join(workspace, 'job.ys'), script, 'utf8');
     await writeFile(join(workspace, 'inputs.f'), args, 'utf8');
     const { code, log } = await run(executable, lint ? ['-F', 'inputs.f'] : ['-Q', '-T', '-s', 'job.ys'], workspace, environment);
-    const result: BuildResult = { ok: code === 0, log: log || (code === 0 ? '' : `HDL 工具退出状态：${code}`), diagnostics: diagnostics(log, files) };
+    const result: BuildResult = { ok: code === 0, log, diagnostics: diagnostics(log, files) };
+    if (!log && code !== 0) result.logMessage = message('toolExit', { code });
     if (!lint) result.log = `[job.ys]\n${script}\n\n[inputs.f]\n${args}\n\n${result.log}`;
     if (!result.ok || lint) return result;
     result.netlist = JSON.parse(await readFile(join(workspace, 'design.json'), 'utf8')) as Netlist;
     result.sourceNetlist = JSON.parse(await readFile(join(workspace, 'source.json'), 'utf8')) as Netlist;
     result.top = Object.keys(result.netlist.modules).find(name => /1$/.test(result.netlist!.modules[name].attributes?.top ?? ''));
-    if (!result.top) throw new Error('网表没有顶层模块。请指定顶层模块。');
+    if (!result.top) throw new LocalizedError(message('noTop'));
     return result;
   } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
-    return { ok: false, log: message.includes('ENOENT') ? '找不到 HDL 工具。开发运行需要带 read_slang 的 Yosys 和独立 slang，可通过 VERILOG_IDE_TOOLCHAIN 指定目录。\n' + message : message, diagnostics: [] };
+    const detail = errorMessage(error);
+    if (typeof detail !== 'string') return { ok: false, log: '', logMessage: detail, diagnostics: [] };
+    return { ok: false, log: detail, logMessage: detail.includes('ENOENT') ? message('missingTools') : undefined, diagnostics: [] };
   } finally {
     if (workspace) await rm(workspace, { recursive: true, force: true }).catch(() => {});
   }

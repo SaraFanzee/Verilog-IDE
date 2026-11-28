@@ -1,3 +1,5 @@
+import type { Message } from './i18n';
+
 export interface Source {
   id: string;
   name: string;
@@ -61,6 +63,7 @@ export interface Diagnostic {
 export interface BuildResult {
   ok: boolean;
   log: string;
+  logMessage?: Message;
   diagnostics: Diagnostic[];
   netlist?: Netlist;
   sourceNetlist?: Netlist;

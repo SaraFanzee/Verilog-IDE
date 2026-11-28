@@ -1,3 +1,4 @@
+import { LocalizedError, message } from './i18n';
 import type { Logic, Part, Vector } from './design';
 
 export interface CellMemory { clock?: Logic; state?: Vector; }
@@ -150,7 +151,7 @@ export function makeCell(part: Part): Evaluation {
   }
   const seq = makeSequential(part, width('Q'), flag);
   if (seq) return seq;
-  throw new Error(`仿真尚不支持元件 ${type}（${part.name}）。`);
+  throw new LocalizedError(message('unsupportedCell', { type, name: part.name }));
 }
 
 function makeSequential(part: Part, width: number, flag: (name: string) => boolean): Evaluation | undefined {

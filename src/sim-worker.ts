@@ -1,3 +1,5 @@
+import { errorMessage } from './i18n';
+import type { Message } from './i18n';
 import { Simulation } from './simulation';
 import type { Design, Signal, Vector } from './design';
 import type { Change, Duration, Timing } from './simulation';
@@ -22,7 +24,7 @@ export interface Frame {
   cursor: number;
   values: Vector;
   waves: Record<string, Change<Vector>[]>;
-  error?: string;
+  error?: Message | string;
 }
 
 let simulation: Simulation | undefined;
@@ -33,7 +35,7 @@ let postedVersion = -1;
 let postedCursor = false;
 const worker = self as unknown as DedicatedWorkerGlobalScope;
 
-function frame(request: Request, error?: string): Frame {
+function frame(request: Request, error?: Message | string): Frame {
   const { version, view } = request;
   if (!simulation) return { version, cursor: view.cursor, computed: -1, values: [], waves: {}, error };
   const cursor = view.cursor;
@@ -65,7 +67,7 @@ function calculate() {
     }
     if (simulation.computed < target) schedule();
   } catch (error) {
-    worker.postMessage(frame(request, error instanceof Error ? error.message : String(error)));
+    worker.postMessage(frame(request, errorMessage(error)));
   }
 }
 
@@ -95,6 +97,6 @@ worker.onmessage = ({ data }: MessageEvent<Request>) => {
     }
     schedule();
   } catch (error) {
-    worker.postMessage(frame(data, error instanceof Error ? error.message : String(error)));
+    worker.postMessage(frame(data, errorMessage(error)));
   }
 };

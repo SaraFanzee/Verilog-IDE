@@ -1,3 +1,5 @@
+import { errorMessage } from './i18n';
+import type { Message } from './i18n';
 import ELK from 'elkjs/lib/elk-api.js';
 import type { ElkExtendedEdge, ElkNode } from 'elkjs/lib/elk-api';
 import { routeChannels, routeNets } from './routing';
@@ -12,7 +14,7 @@ export interface LayoutRequest {
   groups: { part: number; at: Terminal }[][];
 }
 
-export type LayoutResult = { width: number; height: number; boxes: Box[]; routes: Route[] } | { error: string };
+export type LayoutResult = { width: number; height: number; boxes: Box[]; routes: Route[] } | { error: Message | string };
 
 const elk = new ELK({ workerUrl: './elk-worker.js', workerFactory: url => new Worker(url!) });
 const worker = self as DedicatedWorkerGlobalScope;
@@ -71,6 +73,6 @@ worker.onmessage = async ({ data }: MessageEvent<LayoutRequest>) => {
     const initial = layout ?? routeChannels(boxes, groups, kinds);
     worker.postMessage(optimizeLayout(refineLayout(initial, groups, kinds)) satisfies LayoutResult);
   } catch (error) {
-    worker.postMessage({ error: error instanceof Error ? error.message : String(error) } satisfies LayoutResult);
+    worker.postMessage({ error: errorMessage(error) } satisfies LayoutResult);
   }
 };

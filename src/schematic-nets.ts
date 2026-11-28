@@ -145,7 +145,7 @@ export function diagramConnections(scope: Scope, signals: Signal[]) {
     const index = parts.length;
     const endpoint = (pin: number) => ({ part: index, pin, key: index + ':' + pin });
     const trunk: BusName = aliases[0] ? { ...aliases[0].signal, name: aliases[0].label } : { name: terminalName, width: bits.length };
-    const hub: Part = { id: JSON.stringify(['@adapter', scope.id, index]), name: split ? '分线器' : '集线器',
+    const hub: Part = { id: JSON.stringify(['@adapter', scope.id, index]), name: split ? '@split' : '@join',
       type: split ? '@split' : '@join', pins: [{ name: selection(trunk, bits.length - 1, 0), bits, direction: split ? 'input' : 'output' }] };
     parts.push(hub);
     trunks.push({ signal, aliases, endpoints: [...ends, endpoint(0)] });

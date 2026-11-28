@@ -1,3 +1,4 @@
+import { LocalizedError, message } from './i18n';
 export interface Point { x: number; y: number }
 export interface Box extends Point { width: number; height: number }
 export interface Terminal { point: Point; side: 'left' | 'right' }
@@ -121,7 +122,7 @@ export function routeNets(width: number, height: number, boxes: Box[], nets: Ter
   const reservations = new Map<number, number>();
   let searches = 0;
   const checkTime = () => {
-    if ((++searches & 511) === 0 && performance.now() > deadline) throw new Error('局部布线超时');
+    if ((++searches & 511) === 0 && performance.now() > deadline) throw new LocalizedError(message('routingTimeout'));
   };
   for (const box of boxes) {
     for (let y = box.y; y <= box.y + box.height; y++) {
@@ -157,7 +158,7 @@ export function routeNets(width: number, height: number, boxes: Box[], nets: Ter
   function route(terminals: typeof starts[number], index: number): Route {
     if (reroute && terminals.length > 1 && terminals.some(({ start }) =>
       blocked.has(start) || occupied.has(start) || reservations.get(start) !== index)) {
-      throw new Error('引脚出线空间不足。');
+      throw new LocalizedError(message('pinClearance'));
     }
     const tree = new Map<number, number>();
     const added: number[] = [];
@@ -244,7 +245,7 @@ export function routeNets(width: number, height: number, boxes: Box[], nets: Ter
         connected = true;
         break;
       }
-      if (!connected) throw new Error('当前布局的布线通道不足。');
+      if (!connected) throw new LocalizedError(message('routingChannels'));
     }
 
     const segments: Route['segments'] = [];

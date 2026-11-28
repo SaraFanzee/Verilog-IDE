@@ -1,3 +1,4 @@
+import { LocalizedError, message } from './i18n';
 import { makeCell } from './cells';
 import type { CellMemory } from './cells';
 import type { Design, Logic, Signal, Vector } from './design';
@@ -195,7 +196,7 @@ export class Simulation {
     settle();
     if (time === 0) this.models.forEach((_, index) => dirty.add(index));
     for (let delta = 0; dirty.size; delta++) {
-      if (delta === 128) throw new Error(`时间点 ${time} 存在无法稳定的零延迟反馈。请检查组合环路或设置元件延迟。`);
+      if (delta === 128) throw new LocalizedError(message('unstableFeedback', { time }));
       const batch = [...dirty];
       dirty.clear();
       for (const index of batch) {
