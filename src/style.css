@@ -47,7 +47,26 @@ h2 { margin: 0; font-size: 13px; font-weight: 650; overflow-wrap: anywhere; }
   background: var(--panel);
   -webkit-app-region: drag;
 }
-.appbar select { min-height: 24px; padding-block: 1px; -webkit-app-region: no-drag; }
+#interface-language {
+  display: grid; place-items: center; flex: none; width: 28px; min-height: 24px; padding: 0;
+  anchor-name: --language-button; -webkit-app-region: no-drag;
+}
+#interface-language:has(+ :popover-open) { border-color: var(--accent); }
+.language-icon { width: 23px; height: 23px; background: currentColor; mask: url("./language-icon.png") center / contain no-repeat; }
+#language-options {
+  position: fixed; position-anchor: --language-button; inset: auto;
+  top: calc(anchor(bottom) + 4px); right: anchor(right); margin: 0; padding: 4px;
+  min-width: 124px; border: 1px solid var(--line); border-radius: 6px;
+  background: var(--panel); color: var(--text); box-shadow: 0 7px 18px #0006;
+  -webkit-app-region: no-drag;
+}
+#language-options button {
+  display: flex; justify-content: space-between; gap: 12px; width: 100%; text-align: start;
+  border-color: transparent; background: transparent;
+}
+#language-options button:hover { background: var(--surface); }
+#language-options button[aria-pressed="true"] { color: var(--accent); background: var(--accent-dark); }
+#language-options button[aria-pressed="true"]::after { content: "✓" / ""; }
 #editor-language-note { margin: 0; color: var(--muted); font-size: 11px; }
 .brand { display: flex; gap: 8px; align-items: center; font-weight: 700; font-size: 16px; margin-right: 14px; white-space: nowrap; }
 .brand-mark { width: 25px; height: 25px; display: grid; place-items: center; background: var(--accent-dark); color: var(--accent); border: 1px solid #32645e; border-radius: 6px; font: bold 24px/1 var(--mono); }

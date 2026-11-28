@@ -37,11 +37,10 @@ app.whenReady().then(async () => {
   await webContents.debugger.sendCommand('Log.enable');
   if (webContents.isLoading()) await new Promise(resolve => webContents.once('did-finish-load', resolve));
   const evaluate = expression => webContents.executeJavaScript(expression);
-  const language = locale => evaluate(`(() => {
-    const select = document.getElementById('interface-language');
-    select.value = ${JSON.stringify(locale)};
-    select.dispatchEvent(new Event('change'));
-  })()`);
+  const language = locale => evaluate(`
+    document.getElementById('interface-language').click();
+    document.querySelector(${JSON.stringify(`#language-options:popover-open button[value="${locale}"]`)}).click();
+  `);
   const value = id => evaluate(`document.getElementById(${JSON.stringify(id)}).textContent`);
   const checkWires = async name => {
     const metrics = await evaluate(`(() => {
@@ -198,6 +197,43 @@ app.whenReady().then(async () => {
   await key('=', ['control']);
   await key('0', ['control']);
   assert.equal(webContents.getZoomLevel(), 0);
+  const pressAt = async selector => {
+    const point = await evaluate(`(() => {
+      const rect = document.querySelector(${JSON.stringify(selector)}).getBoundingClientRect();
+      return { x: Math.round(rect.x + rect.width / 2), y: Math.round(rect.y + rect.height / 2) };
+    })()`);
+    for (const type of ['mouseDown', 'mouseUp']) webContents.sendInputEvent({ type, ...point, button: 'left', clickCount: 1 });
+  };
+  const languageOpen = "document.querySelector('#language-options:popover-open')";
+  assert.equal(await evaluate(`Boolean(${languageOpen})`), false);
+  assert(await evaluate(`(async () => {
+    const mask = getComputedStyle(document.querySelector('.language-icon')).maskImage;
+    if (!mask.startsWith('url(')) return false;
+    const image = new Image();
+    image.src = mask.slice(5, -2);
+    await image.decode();
+    return image.naturalWidth > 0;
+  })()`), 'language icon loads from the built app');
+  await pressAt('#interface-language');
+  await wait(languageOpen, 'mouse opens the language chooser');
+  assert(await evaluate(`(() => {
+    const trigger = document.getElementById('interface-language').getBoundingClientRect();
+    const menu = (${languageOpen}).getBoundingClientRect();
+    return menu.top >= trigger.bottom && Math.abs(menu.right - trigger.right) < 1;
+  })()`), 'language choices are aligned below the icon');
+  assert.deepEqual(await evaluate(`[...(${languageOpen}).querySelectorAll('button')].map(button => [button.textContent, button.getAttribute('aria-pressed')])`),
+    [['简体中文', 'true'], ['English', 'false']]);
+  await pressAt('#language-options button[lang=en]');
+  await wait(`!(${languageOpen}) && document.documentElement.lang === 'en' && document.activeElement.id === 'interface-language'`, 'choosing English closes the popover');
+  await key('Space');
+  await wait(`${languageOpen} && document.querySelector('#language-options button[lang=en]').getAttribute('aria-pressed') === 'true'`, 'keyboard opens the menu and English is marked active');
+  await key('Escape');
+  await wait(`!(${languageOpen}) && document.activeElement.id === 'interface-language'`, 'Escape closes the language chooser');
+  await pressAt('#interface-language');
+  await wait(languageOpen, 'reopen the language menu');
+  await pressAt('.editor-panel h2');
+  await wait(`!(${languageOpen})`, 'clicking outside closes the language chooser');
+  await language('zh-CN');
   await key('F11');
   assert(window.isFullScreen());
   await key('F11');

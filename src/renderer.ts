@@ -24,7 +24,9 @@ const input = (id: string) => el<HTMLInputElement>(id);
 const select = (id: string) => el<HTMLSelectElement>(id);
 const dialog = (id: string) => el<HTMLDialogElement>(id);
 const on = (id: string, event: string, handler: () => void) => el(id).addEventListener(event, handler);
-const languageControl = select('interface-language');
+const languageControl = button('interface-language');
+const languageMenu = el('language-options');
+const languageChoices = languageMenu.querySelectorAll('button');
 const modes = ['rtl', 'gate'] as const;
 let selectedMode: BuildOptions['mode'] = 'rtl';
 const options = (): BuildOptions => ({
@@ -1101,7 +1103,7 @@ split('wave-split', '--wave-height', event => Math.max(130, Math.min(innerHeight
 function renderLanguage() {
   const locale = getLocale();
   document.documentElement.lang = locale;
-  languageControl.value = locale;
+  for (const choice of languageChoices) choice.setAttribute('aria-pressed', String(choice.value === locale));
   el('editor-language-note').hidden = locale === startupLocale;
   for (const element of document.querySelectorAll<HTMLElement>('[data-i18n]')) {
     element.textContent = t(element.dataset.i18n as MessageKey);
@@ -1127,12 +1129,18 @@ function renderLanguage() {
   waveform.refreshLanguage();
   draw();
 }
-languageControl.onchange = () => {
-  const locale = isEnglish(languageControl.value) ? 'en' : 'zh-CN';
-  setLocale(locale);
-  try { localStorage.setItem(localeStorageKey, locale); } catch { /* Keep the session preference. */ }
-  renderLanguage();
-};
+for (const choice of languageChoices) {
+  choice.onclick = () => {
+    languageMenu.hidePopover();
+    const locale = isEnglish(choice.value) ? 'en' : 'zh-CN';
+    if (locale !== getLocale()) {
+      setLocale(locale);
+      try { localStorage.setItem(localeStorageKey, locale); } catch { /* Keep the session preference. */ }
+      renderLanguage();
+    }
+    languageControl.focus();
+  };
+}
 
 switchTab(addFile({ id: 'demo', name: 'counter.sv', text: sample }));
 updateNavigation();
