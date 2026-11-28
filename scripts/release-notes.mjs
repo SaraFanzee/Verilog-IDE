@@ -19,7 +19,7 @@ function versionSection(changelog, version, filename) {
 export function releaseNotes(chinese, english, version) {
   const zh = versionSection(chinese, version, 'CHANGELOG.md');
   const en = versionSection(english, version, 'CHANGELOG.en.md');
-  return `# Verilog IDE v${version}\n\n[简体中文](#简体中文) · [English](#english)\n\n## 简体中文\n\n${zh}\n\n## English\n\n${en}\n`;
+  return `# Verilog IDE v${version}\n\n${zh}\n\n---\n\n${en}\n`;
 }
 
 export async function readReleaseNotes(version) {
