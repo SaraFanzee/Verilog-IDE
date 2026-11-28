@@ -669,7 +669,12 @@ app.whenReady().then(async () => {
        assign y=en?a:16'bz; assign k=en?16'hbeef:16'bz; assign wide=en?64'h123456789abcdef0:64'bz;
        assign mux_y=en?64'hdeadbeef01234567:data; endmodule
      module tri_gate(input a,en, output y,k,t);
-       bufif1 u0(y,a,en); bufif1 u1(k,1'b1,en); bufif1 u2(t,1'b0,en); endmodule`}]);
+       bufif1 u0(y,a,en); bufif1 u1(k,1'b1,en); bufif1 u2(t,1'b0,en); endmodule
+     module gate_outlines(input a,b,c, output y);
+       wire inverted = ~a;
+       wire mixed = inverted ^ b;
+       assign y = mixed ~^ c;
+     endmodule`}]);
   await click('open');
   await wait("document.getElementById('tabs').textContent.includes('tri_test.v')", 'tri-state fixture');
   await click('settings');
@@ -719,12 +724,48 @@ app.whenReady().then(async () => {
   assert(await evaluate("[...document.querySelectorAll('.schematic-node.tribuf')].every(body => body.parentNode.querySelector('title').textContent.includes('$_TBUF_'))"));
   await checkSymbolBounds('tribuf');
   console.log('OK RTL and gate tri-state symbols have the same reference size; MUX title and shortened literal fit');
+  await click('settings');
+  await evaluate("document.getElementById('top').value='gate_outlines'; document.getElementById('optimize').checked=false; document.querySelector('#settings-form button[value=apply]').click()");
+  await buildMode('rtl');
+  await wait("document.querySelector('#schematic svg[aria-label=gate_outlines] .schematic-node.xnor')", 'NOT, XOR and XNOR in one path');
+  await click('colors');
+  await evaluate(`for (const [label, color] of [['其他元件边框', '#7554b0'], ['关键路径', '#28d7ad']]) {
+    const input = [...document.querySelectorAll('#color-controls label')].find(node => node.textContent === label).querySelector('input');
+    input.value = color;
+    input.dispatchEvent(new Event('input'));
+  }`);
+  await evaluate("document.querySelector('#color-dialog button').click()");
+  const outlines = () => evaluate(`['not', 'xor', 'xnor'].map(kind => {
+    const body = document.querySelector('#schematic .schematic-node.' + kind);
+    const group = body.parentElement;
+    const outline = getComputedStyle(body);
+    const details = [...group.querySelectorAll('.symbol-detail, .inversion')].map(node => {
+      const style = getComputedStyle(node);
+      return style.fill === 'none' && style.stroke === outline.stroke
+        && style.strokeWidth === outline.strokeWidth && style.vectorEffect === outline.vectorEffect;
+    });
+    return [outline.stroke, group.classList.contains('critical-part'), details];
+  })`);
+  assert.deepEqual(await outlines(), [
+    ['rgb(40, 215, 173)', true, [true]],
+    ['rgb(40, 215, 173)', true, [true]],
+    ['rgb(40, 215, 173)', true, [true, true]],
+  ]);
+  await click('critical-path');
+  assert.deepEqual(await outlines(), [
+    ['rgb(117, 84, 176)', false, [true]],
+    ['rgb(117, 84, 176)', false, [true]],
+    ['rgb(117, 84, 176)', false, [true, true]],
+  ]);
+  console.log('OK NOT, XOR and XNOR details follow the critical-path and component border colors');
   await language('en');
   await new Promise(resolve => {
     webContents.once('did-finish-load', resolve);
     webContents.reload();
   });
-  await wait("document.documentElement.lang === 'en' && document.getElementById('lint-status').textContent === 'Syntax OK'", 'English is restored after reload');
+  window.show();
+  webContents.focus();
+  await wait("document.documentElement.lang === 'en' && document.getElementById('lint-status').textContent === 'Syntax OK' && document.querySelector('.view-lines .view-line')", 'English and the editor are ready after reload');
   assert(await evaluate("document.getElementById('editor-language-note').hidden"));
   const point = await evaluate("(() => {const r=document.querySelector('.view-lines .view-line').getBoundingClientRect(); return {x:Math.round(r.left+12),y:Math.round(r.top+r.height/2)};})()");
   for (const type of ['mouseDown','mouseUp']) webContents.sendInputEvent({type, ...point, button:'right',clickCount:1});

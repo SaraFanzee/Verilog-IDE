@@ -348,8 +348,8 @@ export class Schematic {
       ? svg('path', { class: 'schematic-node ' + kind, d: shape.body, transform })
       : svg('rect', { class: 'schematic-node ' + kind, x: 8, width: width - 16, height, rx: 2 });
     group.append(title, body);
-    if (shape.extra) group.append(svg('path', { d: shape.extra, class: 'symbol-detail', transform }));
-    if (shape.inverted) group.append(svg('circle', { class: 'inversion', cx: bodyTip + bubbleRadius, cy: height / 2, r: bubbleRadius }));
+    if (shape.extra) group.append(svg('path', { d: shape.extra, class: 'symbol-detail gate-detail', transform }));
+    if (shape.inverted) group.append(svg('circle', { class: 'inversion gate-detail', cx: bodyTip + bubbleRadius, cy: height / 2, r: bubbleRadius }));
     if (kind === 'clock') group.append(svg('path', { d: 'M 10,18 h 4 v -6 h 5 v 6 h 4', class: 'symbol-detail' }));
     const display = (text: string, at: Point, css: string, anchor = 'start') => {
       const label = svg('text', { x: at.x, y: at.y, class: css, 'text-anchor': anchor });
@@ -387,7 +387,7 @@ export class Schematic {
       const stub = svg('line', { class: bits.length > 1 ? 'symbol-pin bus-wire' : 'symbol-pin', ...line, 'stroke-width': 1.35 });
       group.append(stub);
       slot.stub = stub;
-      if (inputBubble) group.append(svg('circle', { class: 'inversion', cx: end - 3, cy: y, r: 3 }));
+      if (inputBubble) group.append(svg('circle', { class: 'inversion gate-detail', cx: end - 3, cy: y, r: 3 }));
       if (clock) group.append(svg('path', { d: `M 8 ${y - 5} L 16 ${y} L 8 ${y + 5}`, class: 'symbol-detail' }));
       const pinTitle = svg('title');
       stub.append(pinTitle);
