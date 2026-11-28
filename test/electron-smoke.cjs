@@ -167,6 +167,19 @@ app.whenReady().then(async () => {
   }
   assert(await evaluate("document.querySelector('#colors img').naturalWidth > 0 && document.getElementById('colors').getAttribute('aria-label') === '配色'"));
   assert.equal(await evaluate("document.querySelector('.appbar').getBoundingClientRect().height"), 32);
+  if (process.platform === 'win32') {
+    await wait("navigator.windowControlsOverlay?.visible", 'native window controls are visible');
+  }
+  const titlebarRule = `(() => {
+    const main = document.querySelector('main');
+    const rule = main.getBoundingClientRect();
+    const titlebar = document.querySelector('.appbar').getBoundingClientRect();
+    const controls = navigator.windowControlsOverlay;
+    const overlayBottom = controls?.visible ? controls.getTitlebarAreaRect().bottom : 0;
+    return rule.left === 0 && Math.abs(rule.right - innerWidth) < 1 && rule.top === titlebar.bottom
+      && getComputedStyle(main).borderTopWidth !== '0px' && rule.top >= overlayBottom - 0.5;
+  })()`;
+  assert(await evaluate(titlebarRule), 'full-width divider below the native title bar at default zoom');
   const key = async (keyCode, modifiers = []) => {
     const received = new Promise(resolve => webContents.once('before-input-event', (_,input) => resolve(input)));
     for (const type of ['keyDown','keyUp']) webContents.sendInputEvent({type,keyCode,modifiers});
@@ -175,8 +188,13 @@ app.whenReady().then(async () => {
   const originalZoom = webContents.getZoomLevel();
   const zoomKey = await key('=', ['control','shift']);
   assert(webContents.getZoomLevel() > originalZoom, JSON.stringify(zoomKey));
+  await wait(titlebarRule, 'title bar divider at increased zoom');
   await key('-', ['control']);
   assert.equal(webContents.getZoomLevel(), originalZoom);
+  await key('-', ['control']);
+  assert(webContents.getZoomLevel() < originalZoom);
+  await wait(titlebarRule, 'title bar divider below native controls at reduced zoom');
+  await key('=', ['control']);
   await key('=', ['control']);
   await key('0', ['control']);
   assert.equal(webContents.getZoomLevel(), 0);

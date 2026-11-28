@@ -38,8 +38,15 @@ button.run { color: var(--accent); background: var(--accent-dark); border-color:
 button.selected, button.toggle-button[aria-pressed="true"] { color: var(--accent); border-color: #32645e; background: var(--accent-dark); }
 h2 { margin: 0; font-size: 13px; font-weight: 650; overflow-wrap: anywhere; }
 .spacer { flex: 1; }
-.appbar, .transport { display: flex; align-items: center; gap: 9px; padding: 8px 13px; border-bottom: 1px solid var(--line); }
-.appbar { flex: 0 0 32px; padding-block: 0; padding-right: max(12px, calc(100vw - env(titlebar-area-width, 100vw) + 10px)); background: var(--panel); -webkit-app-region: drag; }
+.appbar, .transport { display: flex; align-items: center; gap: 9px; padding: 8px 13px; }
+.appbar {
+  flex: 0 0 32px;
+  min-height: calc(env(titlebar-area-y, 0px) + env(titlebar-area-height, 0px));
+  padding-block: 0;
+  padding-right: max(12px, calc(100vw - env(titlebar-area-width, 100vw) + 10px));
+  background: var(--panel);
+  -webkit-app-region: drag;
+}
 .appbar select { min-height: 24px; padding-block: 1px; -webkit-app-region: no-drag; }
 #editor-language-note { margin: 0; color: var(--muted); font-size: 11px; }
 .brand { display: flex; gap: 8px; align-items: center; font-weight: 700; font-size: 16px; margin-right: 14px; white-space: nowrap; }
@@ -67,7 +74,7 @@ h2 { margin: 0; font-size: 13px; font-weight: 650; overflow-wrap: anywhere; }
 .transport form input { width: 66px; font-family: var(--mono); }
 .transport-buttons { padding-left: 12px; border-left: 1px solid var(--line); }
 #time-readout { color: var(--accent); margin-left: auto; font: 13px var(--mono); white-space: nowrap; }
-main { min-height: 0; flex: 1; display: flex; flex-direction: column; padding: 8px 9px 5px; }
+main { min-height: 0; flex: 1; display: flex; flex-direction: column; border-top: 1px solid var(--line); padding: 7px 9px 5px; }
 .workspace { min-height: 0; flex: 1; display: flex; }
 .panel { display: flex; flex-direction: column; background: var(--panel); min-height: 0; min-width: 0; border: 1px solid var(--line); border-radius: 7px; overflow: hidden; }
 .editor-panel { container: editor / inline-size; }
