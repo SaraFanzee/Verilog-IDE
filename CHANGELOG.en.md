@@ -2,11 +2,14 @@
 
 [简体中文](CHANGELOG.md) · English
 
-## Unreleased
+## v0.1.19
 
 - Switch between Simplified Chinese and English from the title bar. The workbench updates immediately and saves the selection. Monaco’s built-in menus and Command Palette use the selected language the next time the app launches.
 - Toolbars wrap to the available panel width, and text buttons can display longer labels in narrow panels.
-- Add English documentation and historical changelogs. Release notes now include both languages.
+- Add English documentation and historical changelogs. A horizontal rule separates the Chinese and English release notes.
+- Match the NOT gate’s inversion bubble, the XOR gate’s extra arc, and both XNOR details to their gate outline and critical-path colors.
+- Center the divider between the source editor and the results area. Increase the collapse and expand buttons from 26 to 208 pixels tall while keeping them 12 pixels wide.
+- Draw the title bar divider below the native window controls so it spans the full window at different interface zoom levels.
 
 ## v0.1.18
 
