@@ -225,8 +225,30 @@ app.whenReady().then(async () => {
   await key('y', ['control']); await wait('!' + sampleRestored, 'editor redo');
   await key('z', ['control']); await wait(sampleRestored, 'restore source');
   assert(await evaluate("document.querySelector('.results').getBoundingClientRect().width === 0"));
-  await click('editor-less'); await click('editor-less');
+  const splitterGeometry = () => evaluate(`(() => {
+    const splitter = document.getElementById('editor-split');
+    const box = splitter.getBoundingClientRect();
+    const line = getComputedStyle(splitter, '::before');
+    const left = parseFloat(line.left);
+    const right = box.width - left - parseFloat(line.width);
+    const buttons = [...splitter.querySelectorAll('button')].filter(button => button.getClientRects().length);
+    return { left, right, buttons: buttons.map(button => {
+      const rect = button.getBoundingClientRect();
+      const artwork = getComputedStyle(button, '::before');
+      const [xScale, yScale] = artwork.scale.split(' ').map(Number);
+      const edge = button.id === 'editor-less' ? rect.right : rect.left;
+      return [rect.width, rect.height, Math.abs(xScale) * parseFloat(artwork.width),
+        yScale * parseFloat(artwork.height), edge - box.left - box.width / 2,
+        rect.top + rect.height / 2 - box.top - box.height / 2];
+    }) };
+  })()`);
+  const buttonGeometry = [12, 208, 7, 144, 0, 0];
+  assert.deepEqual(await splitterGeometry(), { left: 4, right: 4, buttons: [buttonGeometry] }, 'full editor splitter');
+  await click('editor-less');
+  assert.deepEqual(await splitterGeometry(), { left: 4, right: 4, buttons: [buttonGeometry, buttonGeometry] }, 'split editor splitter');
+  await click('editor-less');
   assert.equal(await evaluate("document.getElementById('workspace').dataset.editor"), 'hidden');
+  assert.deepEqual(await splitterGeometry(), { left: 4, right: 4, buttons: [buttonGeometry] }, 'hidden editor splitter');
   await click('editor-more'); await click('editor-more');
   assert(await evaluate("!!document.querySelector('.editor-panel .panel-header .synth-actions #synthesize + #settings')"));
   assert.equal(await evaluate("document.getElementById('settings').getBoundingClientRect().width"), 12);
